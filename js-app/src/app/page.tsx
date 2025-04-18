@@ -1,14 +1,15 @@
 "use client";
-import Image from "next/image";
-import { useState, useEffect } from 'react'
-import { Greeting } from 'kt-js-experiment'
+import Image from 'next/image';
+import { useEffect } from 'react'
+import { MerchantService } from 'kt-js-experiment'
 
 export default function Home() {
-  const [platform, setPlatform] = useState<Greeting | null>(null)
-
   useEffect(() => {
-    setPlatform(new Greeting())
-  }, [setPlatform]);
+    new MerchantService()
+      .getAllMerchants()
+      .then(console.log)
+      .catch(console.error)
+  }, []);
 
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -30,7 +31,7 @@ export default function Home() {
             .
           </li>
           <li className="tracking-[-.01em]">
-            {platform?.greet()}
+            Hello from KotlinJS + React
           </li>
         </ol>
 

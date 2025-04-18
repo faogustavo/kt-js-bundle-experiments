@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -48,14 +49,42 @@ kotlin {
         all {
             languageSettings.optIn("kotlin.ExperimentalMultiplatform")
             languageSettings.optIn("kotlin.js.ExperimentalJsExport")
+            languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
         }
 
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
+            // Ktor client dependencies
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.kotlinx.serialization.json)
+
+            // Coroutines
+            implementation(libs.kotlinx.coroutines.core)
+
+            // Koin dependency injection
+            implementation(libs.koin.core)
+
+            // SKIE annotations
+            implementation(libs.touchlab.skie.annotations)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.ktor.client.android)
+        }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
 
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.koin.test)
         }
     }
 }

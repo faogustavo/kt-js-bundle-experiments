@@ -220,6 +220,8 @@ It's recommended to use ESLint and Prettier for JavaScript/TypeScript files. You
 
 ### Common Issues and Solutions
 
+0. **Gradle Builds**: Instead of using the `build` command, use the `assemble` that is faster
+
 1. **JS Build Issues**: If you encounter JS build issues, try:
    - Clearing the Kotlin/JS cache: `rm -rf kotlin-js-store/`
    - Rebuilding the JS module: `./gradlew :shared:jsJar`
