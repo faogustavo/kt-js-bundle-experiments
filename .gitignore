@@ -1,0 +1,56 @@
+local.properties
+*.jks
+.kotlin
+
+.gradle
+build/
+.build
+
+## Gradle Profiler
+gradle-user-home/
+profile-out*/
+build_benchmark.scenarios
+
+.idea/**/*
+!.idea/inspectionProfiles/
+!.idea/inspectionProfiles/**
+!.idea/codeStyles/
+!.idea/codeStyles/**
+
+*.iml
+
+.DS_Store
+.vscode
+
+### Objective-C ###
+# OS X
+.DS_Store
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+profile
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcworkspace/
+
+
+# Spring log files
+*.log
+
+# JS Map Files
+*.js.map
+
+# JS Dist Folder
+dist/
+
