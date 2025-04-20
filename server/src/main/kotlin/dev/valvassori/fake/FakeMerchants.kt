@@ -63,7 +63,66 @@ object FakeMerchants {
                         description = "The iconic Big Mac with two beef patties, special sauce, lettuce, cheese, pickles, and onions on a sesame seed bun.",
                         price = 599, // $5.99
                         imageUrl = "https://picsum.photos/seed/ba6beb2f-13fb-43b5-a272-891841df45d4/200",
-                        options = listOf(),
+                        options = listOf(
+                            Item.Option(
+                                id = "d4579756-34ec-40a1-9f63-30a4d8b9f8b7",
+                                name = "Extra Ingredients",
+                                description = "Add extra ingredients to your burger",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.MultipleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "f7eb1a68-9228-4d5e-bf21-b4f4de6a36c2",
+                                        name = "Extra Cheese",
+                                        description = "Add an extra slice of cheese",
+                                        price = 100, // $1.00
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "5d74418e-e466-4e1e-acd4-bb4d83b529cb",
+                                        name = "Extra Patty",
+                                        description = "Add an extra beef patty",
+                                        price = 200, // $2.00
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "ced9ca82-9ffb-48bb-8ae2-7cf75fc94a4e",
+                                        name = "Extra Sauce",
+                                        description = "Add extra special sauce",
+                                        price = 50, // $0.50
+                                    )
+                                ),
+                                required = false
+                            ),
+                            Item.Option(
+                                id = "da069ccc-ae8d-4ad0-bb6d-7ad7610921e9",
+                                name = "Remove Ingredients",
+                                description = "Remove ingredients from your burger",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.MultipleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "49f078f1-a784-44d1-9c02-5a68917df9db",
+                                        name = "No Cheese",
+                                        description = "Remove cheese from your burger",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "dc92cfbf-3b58-417a-9dd4-578bb4040465",
+                                        name = "No Pickles",
+                                        description = "Remove pickles from your burger",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "353d801f-51b0-4e97-a45a-9f6fc4880fa6",
+                                        name = "No Onions",
+                                        description = "Remove onions from your burger",
+                                        price = 0,
+                                    )
+                                ),
+                                required = false
+                            )
+                        ),
                         isAvailable = true
                     ),
                     Item(
@@ -186,7 +245,148 @@ object FakeMerchants {
                         description = "A medium-sized hot coffee.",
                         price = 149, // $1.49
                         imageUrl = "https://picsum.photos/seed/787a2dce-040e-4201-a141-6ff88ca987c6/200",
-                        options = listOf(),
+                        options = listOf(
+                            Item.Option(
+                                id = "a3b0c0b1-59d3-4ead-86d9-7d5ef0ecceed",
+                                name = "Size",
+                                description = "Choose your coffee size",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.SingleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "4032937d-fba2-4667-8a87-eb5b0f4cced1",
+                                        name = "Small",
+                                        description = "Small size (12 oz)",
+                                        price = -50, // -$0.50
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "3b967c44-0d07-47be-a3e9-fc8118dd2b8a",
+                                        name = "Medium",
+                                        description = "Medium size (16 oz)",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "7b3f235e-c17d-48d0-a5c0-c4412f9322e7",
+                                        name = "Large",
+                                        description = "Large size (20 oz)",
+                                        price = 50, // +$0.50
+                                    )
+                                ),
+                                required = true
+                            ),
+                            Item.Option(
+                                id = "c9ea8ab5-b8e6-4289-9efa-28af755c6be8",
+                                name = "Milk",
+                                description = "Add milk to your coffee",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.SingleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "1036d8bf-20ca-41fd-be3d-a28dc9f15b1a",
+                                        name = "No Milk",
+                                        description = "No milk added",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "af89c779-116f-4e35-b9fb-66acf1018f52",
+                                        name = "Regular Milk",
+                                        description = "Regular milk added",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "aa863661-268c-41d4-84af-25aa6ca69d94",
+                                        name = "Skim Milk",
+                                        description = "Skim milk added",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "48294cef-0b63-47e4-833f-41d95bc98d6c",
+                                        name = "Almond Milk",
+                                        description = "Almond milk added",
+                                        price = 50, // +$0.50
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "8d8fa84b-e0be-43e1-add5-234cc356a4b9",
+                                        name = "Oat Milk",
+                                        description = "Oat milk added",
+                                        price = 50, // +$0.50
+                                    )
+                                ),
+                                required = false
+                            ),
+                            Item.Option(
+                                id = "ac0bc4bf-19be-48a1-abb8-eaaab479bc35",
+                                name = "Sugar",
+                                description = "Add sugar to your coffee",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.SingleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "b381a29c-b652-4b58-99e6-bb2ef5cbb406",
+                                        name = "No Sugar",
+                                        description = "No sugar added",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "e8bfcf1a-60f0-4372-bbdc-1ac209536da0",
+                                        name = "Light Sugar",
+                                        description = "Light amount of sugar",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "305c76ca-2d04-4e5e-96f7-d2cc99362be0",
+                                        name = "Regular Sugar",
+                                        description = "Regular amount of sugar",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "0688edd1-d315-4181-b780-b8d26718e691",
+                                        name = "Extra Sugar",
+                                        description = "Extra amount of sugar",
+                                        price = 0,
+                                    )
+                                ),
+                                required = false
+                            ),
+                            Item.Option(
+                                id = "869d48c0-7c72-46f1-9fee-7f9c39dc1cee",
+                                name = "Flavor Shot",
+                                description = "Add a flavor shot to your coffee",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.SingleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "9c74cc8b-b089-4c60-98c7-7d0f2bcf921a",
+                                        name = "No Flavor",
+                                        description = "No flavor shot added",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "e14acc5d-2fc8-456d-ad33-7c80481f85f7",
+                                        name = "Vanilla",
+                                        description = "Vanilla flavor shot",
+                                        price = 75, // +$0.75
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "059b2408-d5f6-474c-831e-07d00d4b509f",
+                                        name = "Caramel",
+                                        description = "Caramel flavor shot",
+                                        price = 75, // +$0.75
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "07059e8b-6552-4e1d-a1e8-b4ff66a48423",
+                                        name = "Hazelnut",
+                                        description = "Hazelnut flavor shot",
+                                        price = 75, // +$0.75
+                                    )
+                                ),
+                                required = false
+                            )
+                        ),
                         isAvailable = true
                     )
                 )
@@ -241,7 +441,141 @@ object FakeMerchants {
                         description = "The Italian B.M.T.® sandwich is filled with Genoa salami, spicy pepperoni, and Black Forest ham.",
                         price = 899, // $8.99
                         imageUrl = "https://picsum.photos/seed/e61ec945-d821-4bd2-a2d6-8a8fce6d3672/200",
-                        options = listOf(),
+                        options = listOf(
+                            Item.Option(
+                                id = "4e5d2414-6557-4687-bfdb-69605c908a5d",
+                                name = "Bread Type",
+                                description = "Choose your bread type",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.SingleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "a92dcc0b-fe3f-495e-9c04-863febb39493",
+                                        name = "Italian Herbs & Cheese",
+                                        description = "Italian Herbs & Cheese bread",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "46cb4700-31f2-4c44-9abb-baf273d1f187",
+                                        name = "9-Grain Wheat",
+                                        description = "9-Grain Wheat bread",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "e0b42b8c-9d6e-4d0e-bf44-0b582a0df8e2",
+                                        name = "Italian White",
+                                        description = "Italian White bread",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "94a650fd-5114-4708-b400-6639dd1f615a",
+                                        name = "Flatbread",
+                                        description = "Flatbread",
+                                        price = 0,
+                                    )
+                                ),
+                                required = true
+                            ),
+                            Item.Option(
+                                id = "a088cbfb-d21f-4d05-b14b-744d86a6cbbb",
+                                name = "Toasted",
+                                description = "Would you like your sandwich toasted?",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.Boolean,
+                                options = listOf(),
+                                required = false
+                            ),
+                            Item.Option(
+                                id = "0f1a8c51-9eca-4164-8bc6-79e8c5656c11",
+                                name = "Toppings",
+                                description = "Choose your toppings",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.MultipleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "926cc11a-0fa5-4402-ad70-e1b9ace40d7d",
+                                        name = "Lettuce",
+                                        description = "Fresh lettuce",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "90673367-95b3-4fbc-b98f-ab1f71c130f5",
+                                        name = "Tomatoes",
+                                        description = "Fresh tomatoes",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "a3703b68-823c-4a29-8460-f043c013f9de",
+                                        name = "Cucumbers",
+                                        description = "Fresh cucumbers",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "bb6def0b-973b-43fe-ad4a-d8ff3f2bd510",
+                                        name = "Green Peppers",
+                                        description = "Fresh green peppers",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "b624bcad-8651-44f7-ae13-34d9725171ae",
+                                        name = "Red Onions",
+                                        description = "Fresh red onions",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "57d8df4b-7efd-4af0-a729-66aa6c188a25",
+                                        name = "Avocado",
+                                        description = "Fresh avocado",
+                                        price = 150, // $1.50
+                                    )
+                                ),
+                                required = false
+                            ),
+                            Item.Option(
+                                id = "ae447533-e80f-471c-b41e-991b3ca29849",
+                                name = "Sauces",
+                                description = "Choose your sauces",
+                                price = 0,
+                                isAvailable = true,
+                                type = Item.Option.Type.MultipleSelection,
+                                options = listOf(
+                                    Item.Option.Entry(
+                                        id = "c4f39ff8-2a4f-4c03-b4da-36263d094ab3",
+                                        name = "Mayonnaise",
+                                        description = "Creamy mayonnaise",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "2fbb71cb-5d48-461f-948b-d1738b8465e1",
+                                        name = "Ranch",
+                                        description = "Creamy ranch dressing",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "46cb99a5-5af4-4e1c-8816-23926a24299c",
+                                        name = "Sweet Onion",
+                                        description = "Sweet onion sauce",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "e8dcb3a6-a088-487a-8c0d-8d16913f8a23",
+                                        name = "Chipotle Southwest",
+                                        description = "Spicy chipotle southwest sauce",
+                                        price = 0,
+                                    ),
+                                    Item.Option.Entry(
+                                        id = "f72846be-d778-4dda-bbdd-09b0f1cde02b",
+                                        name = "Oil & Vinegar",
+                                        description = "Classic oil & vinegar",
+                                        price = 0,
+                                    )
+                                ),
+                                required = false
+                            )
+                        ),
                         isAvailable = true
                     ),
                     Item(

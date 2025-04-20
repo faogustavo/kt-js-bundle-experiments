@@ -134,8 +134,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setItems(prevItems =>
       prevItems.map(item =>
-        item.item.id === itemId ? { ...item, quantity } : item,
-      ),
+        item.item.id === itemId ? { ...item, quantity } : item
+      )
     );
   };
 

@@ -14,13 +14,14 @@ data class Item(
 ) {
     @Serializable
     data class Option(
-        val id: Long,
+        val id: String,
         val name: String,
         val description: String,
         val price: Int,
         val isAvailable: Boolean,
         val type: Type,
         val options: List<Entry>,
+        val required: Boolean,
     ) {
         @Serializable
         enum class Type {
@@ -31,7 +32,7 @@ data class Item(
 
         @Serializable
         data class Entry(
-            val id: Long,
+            val id: String,
             val name: String,
             val description: String,
             val price: Int,
