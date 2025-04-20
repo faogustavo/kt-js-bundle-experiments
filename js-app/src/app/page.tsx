@@ -5,8 +5,7 @@ import HomeList from '@/app/home/list';
 
 // Function to fetch merchants using MerchantService
 const fetchMerchants = async (): Promise<Array<MerchantResponse>> => {
-  const merchantService = new MerchantService();
-  return merchantService.getAllMerchants();
+  return MerchantService.getInstance().getAllMerchants();
 };
 
 export default function Home() {

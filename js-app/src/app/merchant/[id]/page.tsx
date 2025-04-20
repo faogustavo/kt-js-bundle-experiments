@@ -1,7 +1,7 @@
 "use client";
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { MerchantService, MerchantResponse, ItemResponse } from 'kt-js-experiment';
+import { ItemResponse, MerchantResponse, MerchantService } from 'kt-js-experiment';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -39,13 +39,12 @@ const MenuItem = ({ item }: { item: ItemResponse }) => {
 
 // Function to fetch a single merchant using MerchantService
 const fetchMerchant = async (id: string): Promise<MerchantResponse | null | undefined> => {
-  const merchantService = new MerchantService();
-  return merchantService.getMerchantById(id);
+  return MerchantService.getInstance().getMerchantById(id);
 };
 
 export default function MerchantDetails() {
   const params = useParams();
-  const merchantId = params.id as string;
+  const merchantId = params!.id as string;
 
   // Use React Query to fetch merchant details
   const { data: merchant, isLoading, error } = useQuery({

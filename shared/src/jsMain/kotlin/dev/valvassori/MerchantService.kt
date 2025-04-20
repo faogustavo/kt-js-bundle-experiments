@@ -11,7 +11,7 @@ import org.koin.core.component.inject
 import kotlin.js.Promise
 
 @JsExport
-class MerchantService : KoinComponent {
+object MerchantService : KoinComponent {
     private val dispatcher = CoroutineScope(window.asCoroutineDispatcher())
     private val repository: MerchantRepository by inject()
 

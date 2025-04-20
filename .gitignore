@@ -54,3 +54,4 @@ DerivedData
 # JS Dist Folder
 dist/
 
+/git-commit-message.txt
