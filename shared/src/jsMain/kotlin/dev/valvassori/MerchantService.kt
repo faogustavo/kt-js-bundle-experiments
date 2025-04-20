@@ -18,4 +18,8 @@ class MerchantService : KoinComponent {
     fun getAllMerchants(): Promise<Array<MerchantResponse>> = dispatcher.promise {
         repository.getAllMerchants()
     }
+
+    fun getMerchantById(id: String): Promise<MerchantResponse?> = dispatcher.promise {
+        repository.getMerchantById(id)
+    }
 }

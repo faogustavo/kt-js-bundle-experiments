@@ -1,5 +1,6 @@
 "use client";
 import Image from 'next/image';
+import Link from 'next/link';
 import { MerchantResponse } from 'kt-js-experiment';
 
 // Helper function to format price from cents to dollars
@@ -15,9 +16,10 @@ export default function HomeList({ merchants }: HomeListProps) {
   return (
     <div className="flex flex-col space-y-4 max-w-3xl mx-auto">
       {merchants?.map((merchant) => (
-        <div
+        <Link
           key={merchant.id}
-          className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow w-full flex flex-row"
+          href={`/merchant/${merchant.id}`}
+          className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow w-full flex flex-row cursor-pointer"
         >
           <div className="relative h-32 w-32 sm:h-40 sm:w-40 flex-shrink-0">
             <Image
@@ -63,7 +65,7 @@ export default function HomeList({ merchants }: HomeListProps) {
               </div>
             )}
           </div>
-        </div>
+        </Link>
       ))}
 
       {merchants?.length === 0 && (

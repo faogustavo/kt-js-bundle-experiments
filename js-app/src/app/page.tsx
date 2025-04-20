@@ -1,7 +1,7 @@
 "use client";
 import { useQuery } from '@tanstack/react-query';
-import { MerchantService, MerchantResponse } from 'kt-js-experiment';
-import HomeList from '@/pages/HomeList';
+import { MerchantResponse, MerchantService } from 'kt-js-experiment';
+import HomeList from '@/app/home/list';
 
 // Function to fetch merchants using MerchantService
 const fetchMerchants = async (): Promise<Array<MerchantResponse>> => {
