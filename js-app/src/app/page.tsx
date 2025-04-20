@@ -36,17 +36,17 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-8 font-[family-name:var(--font-geist-sans)]">
-      <header className="mb-8">
+    <div className="min-h-screen px-4 sm:px-8 font-[family-name:var(--font-geist-sans)]">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Restaurants</h1>
         <p className="text-gray-600 dark:text-gray-400">
           Find your favorite food from our selection of restaurants
         </p>
-      </header>
+      </div>
 
-      <main>
+      <div>
         <HomeList merchants={merchants} />
-      </main>
+      </div>
     </div>
   );
 }

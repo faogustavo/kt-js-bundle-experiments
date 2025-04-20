@@ -4,6 +4,9 @@ import './globals.css';
 
 import KoinContextProvider from '@/context/KoinContext'
 import QueryContextProvider from '@/context/QueryContext'
+import { CartProvider } from '@/context/CartContext'
+import Header from '@/components/Header'
+import CartDrawer from '@/components/CartDrawer'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,7 +29,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <body className={ `${ geistSans.variable } ${ geistMono.variable } antialiased` }>
     <QueryContextProvider>
       <KoinContextProvider>
-        { children }
+        <CartProvider>
+          <Header/>
+          <CartDrawer/>
+          <main className="pt-4">
+            { children }
+          </main>
+        </CartProvider>
       </KoinContextProvider>
     </QueryContextProvider>
       </body>

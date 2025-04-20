@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ItemResponse, MerchantResponse, MerchantService } from 'kt-js-experiment';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useCart } from '@/context/CartContext';
 
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
@@ -11,7 +12,19 @@ const formatPrice = (price: number): string => {
 };
 
 // MenuItem component to display a menu item
-const MenuItem = ({ item }: { item: ItemResponse }) => {
+const MenuItem = ({
+                    item,
+                    merchantId,
+                    merchantName,
+                    merchantDeliveryFee,
+                  }: {
+  item: ItemResponse,
+  merchantId: string,
+  merchantName: string,
+  merchantDeliveryFee: number
+}) => {
+  const { addItem } = useCart();
+
   return (
     <div className="border rounded-lg p-4 hover:shadow-md transition-shadow flex">
       <div className="relative h-20 w-20 min-w-20 mr-4">
@@ -32,6 +45,15 @@ const MenuItem = ({ item }: { item: ItemResponse }) => {
         {!item.isAvailable && (
           <p className="text-red-500 text-sm mt-2">Currently unavailable</p>
         )}
+        { item.isAvailable && (
+          <button
+            onClick={ () => addItem(item, merchantId, merchantName, merchantDeliveryFee) }
+            className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+            aria-label={ `Add ${ item.name } to cart` }
+          >
+            Add to Cart
+          </button>
+        ) }
       </div>
     </div>
   );
@@ -87,7 +109,7 @@ export default function MerchantDetails() {
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-8 font-[family-name:var(--font-geist-sans)]">
+    <div className="min-h-screen px-4 sm:px-8 font-[family-name:var(--font-geist-sans)]">
       <Link href="/" className="text-blue-500 hover:underline mb-6 inline-block">
         ← Back to restaurants
       </Link>
@@ -162,7 +184,13 @@ export default function MerchantDetails() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {category.items.map(item => (
-                  <MenuItem key={item.id} item={item} />
+                  <MenuItem
+                    key={ item.id }
+                    item={ item }
+                    merchantId={ merchantId }
+                    merchantName={ merchant.name }
+                    merchantDeliveryFee={ merchant.deliveryFee }
+                  />
                 ))}
               </div>
             </div>
