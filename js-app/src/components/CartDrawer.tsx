@@ -15,8 +15,9 @@ const CartDrawer: React.FC = () => {
     closeCart,
     items,
     totalPrice,
+    addItem,
+    updateItem,
     removeItem,
-    updateQuantity,
     clearCart,
     merchantDeliveryFee,
     merchantName,
@@ -53,8 +54,22 @@ const CartDrawer: React.FC = () => {
   };
 
   // We only need item and quantity for editing, ignoring other parameters
-  const handleConfirmEdit = (item: CartItem | ItemResponse, _merchantId: string, _merchantName: string, quantity: number) => {
-    updateQuantity(item.id, quantity);
+  const handleConfirmEdit = (
+    item: ItemResponse,
+    cartItemId: number | undefined,
+    merchantId: string,
+    merchantName: string,
+    quantity: number,
+    selectedOptions: Record<string, boolean | string | string[] | null>,
+    merchantDeliveryFee: number,
+    merchantCategory?: string,
+    merchantDeliveryTime?: number,
+  ) => {
+    if (cartItemId) {
+      updateItem(cartItemId, quantity, selectedOptions);
+    } else {
+      addItem(item, merchantId, merchantName, quantity, selectedOptions, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
+    }
     setShowQuantityPopup(false);
     setEditingItem(null);
   };
@@ -69,11 +84,13 @@ const CartDrawer: React.FC = () => {
       {/* Menu Item Popup */ }
       { showQuantityPopup && editingItem && (
         <MenuItemPopup
-          item={ editingItem }
-          merchantId={ editingItem.id } // Using item ID as merchant ID since we don't need it for editing
+          item={ editingItem.item }
+          cartItemId={ editingItem.id }
+          merchantId={ editingItem.item.id } // Using item ID as merchant ID since we don't need it for editing
           merchantName="" // Not needed for editing
           merchantDeliveryFee={ 0 } // Not needed for editing
           initialQuantity={ editingItem.quantity }
+          initialOptions={ editingItem.selectedOptions }
           isEdit={ true }
           onConfirm={ handleConfirmEdit }
           onCancel={ handleCancelEdit }
@@ -217,12 +234,22 @@ const CartDrawer: React.FC = () => {
           ) : (
             <ul className="space-y-4">
               { items.map((cartItem) => (
-                <li key={ cartItem.id } className="flex border-b dark:border-gray-700 pb-4">
+                <li key={ cartItem.item.id } className="flex border-b dark:border-gray-700 pb-4">
                   <div className="flex-1">
-                    <h3 className="font-medium">{ cartItem.name }</h3>
+                    <h3 className="font-medium">{ cartItem.item.name }</h3>
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
-                      { formatPrice(cartItem.price) } each
+                      { formatPrice(cartItem.item.price) } each
                     </p>
+                    {/* Display readable options */ }
+                    { Object
+                      .entries(cartItem.readableOptions)
+                      .sort(([, priceA], [, priceB]) => priceB - priceA)
+                      .map(([optionName, price]) => (
+                        <p key={ optionName } className="text-gray-500 dark:text-gray-400 text-sm">
+                          { price > 0 ? `${ optionName } • ${ formatPrice(price) }` : optionName }
+                        </p>
+                      ))
+                    }
                     <div className="flex items-center mt-2">
                       <span className="mr-2">Qty: { cartItem.quantity }</span>
                       <button
@@ -236,7 +263,7 @@ const CartDrawer: React.FC = () => {
                   </div>
                   <div className="flex flex-col justify-between items-end">
                     <span className="font-medium">
-                      { formatPrice(cartItem.price * cartItem.quantity) }
+                      { formatPrice(cartItem.subtotal) }
                     </span>
                     <button
                       onClick={ () => removeItem(cartItem.id) }
@@ -296,3 +323,4 @@ const CartDrawer: React.FC = () => {
 };
 
 export default CartDrawer;
+

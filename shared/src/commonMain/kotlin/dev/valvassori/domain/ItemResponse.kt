@@ -18,7 +18,7 @@ class ItemResponse(
 ) {
     @Serializable
     class OptionResponse(
-        val id: Long,
+        val id: String,
         val name: String,
         val description: String,
         val price: Int,
@@ -35,7 +35,7 @@ class ItemResponse(
 
         @Serializable
         class EntryResponse(
-            val id: Long,
+            val id: String,
             val name: String,
             val description: String,
             val price: Int,

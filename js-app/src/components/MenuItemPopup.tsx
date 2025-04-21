@@ -1,19 +1,172 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ItemResponse } from 'kt-js-experiment';
 
 interface MenuItemPopupProps {
   item: ItemResponse;
+  cartItemId?: number;
   merchantId: string;
   merchantName: string;
   merchantDeliveryFee: number;
   merchantCategory?: string;
   merchantDeliveryTime?: number;
   initialQuantity?: number;
+  initialOptions?: Record<string, boolean | string | string[] | null>;
   isEdit?: boolean;
-  onConfirm: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
+  onConfirm: (
+    item: ItemResponse,
+    cartItemId: number | undefined,
+    merchantId: string,
+    merchantName: string,
+    quantity: number,
+    selectedOptions: Record<string, boolean | string | string[] | null>,
+    merchantDeliveryFee: number,
+    merchantCategory?: string,
+    merchantDeliveryTime?: number,
+  ) => void;
   onCancel: () => void;
 }
+
+interface ItemOptionsProps {
+  item: ItemResponse;
+  selectedOptions: Record<string, boolean | string | string[] | null>;
+  handleOptionChange: (optionId: string, value: boolean | string | string[] | null) => void;
+}
+
+interface BooleanOptionProps {
+  option: ItemResponse.OptionResponse;
+  selected: boolean;
+  handleChange: (value: boolean) => void;
+}
+
+interface SingleSelectionOptionProps {
+  option: ItemResponse.OptionResponse;
+  selected: string | null;
+  handleChange: (value: string) => void;
+}
+
+interface MultipleSelectionOptionProps {
+  option: ItemResponse.OptionResponse;
+  selected: string[];
+  handleChange: (value: string[]) => void;
+}
+
+const BooleanOption: React.FC<BooleanOptionProps> = ({ option, selected, handleChange }) => (
+  <div className="flex items-center">
+    <input
+      type="checkbox"
+      id={ `option-${ option.id }` }
+      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+      checked={ selected }
+      onChange={ (e) => handleChange(e.target.checked) }
+      disabled={ !option.isAvailable }
+    />
+    <label htmlFor={ `option-${ option.id }` } className="ml-2 text-sm">
+      { option.isAvailable ? 'Add this option' : 'Currently unavailable' }
+    </label>
+  </div>
+);
+
+const SingleSelectionOption: React.FC<SingleSelectionOptionProps> = ({ option, selected, handleChange }) => (
+  <div className="space-y-2">
+    { option.options.map((entry) => (
+      <div key={ entry.id } className="flex items-center justify-between">
+        <div className="flex items-center">
+          <input
+            type="radio"
+            id={ `option-${ option.id }-${ entry.id }` }
+            name={ `option-${ option.id }` }
+            className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            checked={ selected === entry.id.toString() }
+            onChange={ () => handleChange(entry.id.toString()) }
+            disabled={ !option.isAvailable }
+          />
+          <label htmlFor={ `option-${ option.id }-${ entry.id }` } className="ml-2 text-sm">
+            { entry.name }
+            { entry.description && <span className="text-xs text-gray-500 ml-1">({ entry.description })</span> }
+          </label>
+        </div>
+        { entry.price > 0 && <span className="text-sm">{ formatPrice(entry.price) }</span> }
+      </div>
+    )) }
+  </div>
+);
+
+const MultipleSelectionOption: React.FC<MultipleSelectionOptionProps> = ({ option, selected, handleChange }) => (
+  <div className="space-y-2">
+    { option.options.map((entry) => (
+      <div key={ entry.id } className="flex items-center justify-between">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id={ `option-${ option.id }-${ entry.id }` }
+            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+            checked={ selected.includes(entry.id.toString()) }
+            onChange={ (e) => {
+              const currentSelections = [...selected];
+              if (e.target.checked) {
+                handleChange([...currentSelections, entry.id.toString()]);
+              } else {
+                handleChange(currentSelections.filter((id) => id !== entry.id.toString()));
+              }
+            } }
+            disabled={ !option.isAvailable }
+          />
+          <label htmlFor={ `option-${ option.id }-${ entry.id }` } className="ml-2 text-sm">
+            { entry.name }
+            { entry.description && <span className="text-xs text-gray-500 ml-1">({ entry.description })</span> }
+          </label>
+        </div>
+        { entry.price > 0 && <span className="text-sm">{ formatPrice(entry.price) }</span> }
+      </div>
+    )) }
+  </div>
+);
+
+const ItemOptions: React.FC<ItemOptionsProps> = ({ item, selectedOptions, handleOptionChange }) => {
+  return (
+    <div className="mb-6">
+      <h4 className="font-semibold mb-2">Options</h4>
+      <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+        { item.options.map((option) => (
+          <div key={ option.id } className="border-b pb-3">
+            <div className="flex justify-between mb-1">
+              <span className="font-medium">{ option.name }</span>
+              { option.price > 0 && <span>{ formatPrice(option.price) }</span> }
+            </div>
+            { option.description && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{ option.description }</p>
+            ) }
+
+            { option.type === ItemResponse.OptionResponse.TypeResponse.Boolean && (
+              <BooleanOption
+                option={ option }
+                selected={ !!selectedOptions[option.id] }
+                handleChange={ (value) => handleOptionChange(option.id.toString(), value) }
+              />
+            ) }
+
+            { option.type === ItemResponse.OptionResponse.TypeResponse.SingleSelection && (
+              <SingleSelectionOption
+                option={ option }
+                selected={ selectedOptions[option.id] as string | null }
+                handleChange={ (value) => handleOptionChange(option.id.toString(), value) }
+              />
+            ) }
+
+            { option.type === ItemResponse.OptionResponse.TypeResponse.MultipleSelection && (
+              <MultipleSelectionOption
+                option={ option }
+                selected={ Array.isArray(selectedOptions[option.id]) ? (selectedOptions[option.id] as string[]) : [] }
+                handleChange={ (value) => handleOptionChange(option.id.toString(), value) }
+              />
+            ) }
+          </div>
+        )) }
+      </div>
+    </div>
+  );
+};
 
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
@@ -22,17 +175,54 @@ const formatPrice = (price: number): string => {
 
 const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
                                                        item,
+                                                       cartItemId,
                                                        merchantId,
                                                        merchantName,
                                                        merchantDeliveryFee,
                                                        merchantCategory,
                                                        merchantDeliveryTime,
                                                        initialQuantity = 1,
+                                                       initialOptions = {},
                                                        isEdit = false,
                                                        onConfirm,
                                                        onCancel,
                                                      }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
+  const [totalPrice, setTotalPrice] = useState(item.price);
+  // Define a type for the selected options
+  type OptionValue = boolean | string | string[] | null;
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, OptionValue>>(initialOptions);
+
+  // Calculate total price including selected options
+  useEffect(() => {
+    let optionsPrice = 0;
+
+    // Calculate the price of selected options
+    Object.entries(selectedOptions).forEach(([optionId, selection]) => {
+      const option = item.options.find(opt => opt.id.toString() === optionId);
+      if (!option) {
+        return;
+      }
+
+      if (option.type === ItemResponse.OptionResponse.TypeResponse.Boolean && selection === true) {
+        optionsPrice += option.price;
+      } else if (option.type === ItemResponse.OptionResponse.TypeResponse.SingleSelection && selection !== null) {
+        const selectedEntry = option.options.find(entry => entry.id.toString() === selection);
+        if (selectedEntry) {
+          optionsPrice += selectedEntry.price;
+        }
+      } else if (option.type === ItemResponse.OptionResponse.TypeResponse.MultipleSelection && Array.isArray(selection)) {
+        selection?.forEach(entryId => {
+          const selectedEntry = option.options.find(entry => entry.id.toString() === entryId);
+          if (selectedEntry) {
+            optionsPrice += selectedEntry.price;
+          }
+        });
+      }
+    });
+
+    setTotalPrice(item.price + optionsPrice);
+  }, [item, selectedOptions]);
 
   const handleIncrement = () => {
     setQuantity(prev => prev + 1);
@@ -44,8 +234,25 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
     }
   };
 
+  const handleOptionChange = (optionId: string, value: OptionValue) => {
+    setSelectedOptions(prev => ({
+      ...prev,
+      [optionId]: value,
+    }));
+  };
+
   const handleConfirm = () => {
-    onConfirm(item, merchantId, merchantName, quantity, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
+    onConfirm(
+      item,
+      cartItemId,
+      merchantId,
+      merchantName,
+      quantity,
+      selectedOptions,
+      merchantDeliveryFee,
+      merchantCategory,
+      merchantDeliveryTime,
+    );
   };
 
   return (
@@ -75,9 +282,18 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
           <p className="text-gray-600 dark:text-gray-400 mb-4">{ item.description }</p>
           <p className="font-medium mb-4">{ formatPrice(item.price) } each</p>
 
+          {/* Display options if available */ }
+          { item.options.length > 0 && (
+            <ItemOptions
+              item={ item }
+              selectedOptions={ selectedOptions }
+              handleOptionChange={ handleOptionChange }
+            />
+          ) }
+
           <div className="flex justify-between items-center mb-6">
             <span className="font-semibold">Total:</span>
-            <span className="font-bold text-lg">{ formatPrice(item.price * quantity) }</span>
+            <span className="font-bold text-lg">{ formatPrice(totalPrice * quantity) }</span>
           </div>
 
           { isEdit && quantity === 0 && (

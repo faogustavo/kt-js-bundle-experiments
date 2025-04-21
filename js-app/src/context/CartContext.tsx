@@ -4,10 +4,12 @@ import { ItemResponse } from 'kt-js-experiment';
 
 // Define the cart item type with quantity
 export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
+  id: number,
   quantity: number;
+  selectedOptions: Record<string, boolean | string | string[] | null>;
+  readableOptions: Record<string, number>;
+  subtotal: number;
+  item: ItemResponse;
 }
 
 // Define the cart context type
@@ -17,9 +19,9 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
-  removeItem: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
+  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
+  removeItem: (itemId: number) => void;
+  updateItem: (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -32,6 +34,70 @@ interface CartContextType {
   clearError: () => void;
 }
 
+const generateReadableOptions = (
+  item: ItemResponse,
+  selectedOptions: Record<string, boolean | string | string[] | null>,
+): Record<string, number> => {
+  const readableOptions: Record<string, number> = {};
+
+  Object.entries(selectedOptions).forEach(([key, value]) => {
+    const option = item.options.find((opt) => opt.id.toString() === key);
+
+    if (Array.isArray(value)) {
+      // Multiple selection options
+      value.forEach((optionId) => {
+        const selectedOption = option?.options.find((opt) => opt.id.toString() === optionId);
+        if (selectedOption) {
+          readableOptions[selectedOption.name] = (readableOptions[selectedOption.name] || 0) + selectedOption.price;
+        }
+      });
+    } else if (typeof value === 'string') {
+      // Single selection options
+      const selectedOption = option?.options.find((opt) => opt.id.toString() === value);
+      if (selectedOption) {
+        readableOptions[selectedOption.name] = selectedOption.price;
+      }
+    } else if (typeof value === 'boolean' && value) {
+      // Boolean options
+      if (option) {
+        readableOptions[option.name] = option.price;
+      }
+    }
+  });
+
+  return readableOptions;
+};
+
+const calculateSubtotal = (
+  item: ItemResponse,
+  quantity: number,
+  selectedOptions: Record<string, boolean | string | string[] | null>,
+): number => {
+  const basePrice = item.price;
+  const optionsPrice = Object.entries(selectedOptions).reduce((total, [key, value]) => {
+    if (Array.isArray(value)) {
+      // Multiple selection options
+      return total + value.reduce((sum, optionId) => {
+        const option = item.options.find((opt) => opt.id.toString() === key);
+        const selectedOption = option?.options.find((opt) => opt.id.toString() === optionId);
+        return sum + (selectedOption?.price || 0);
+      }, 0);
+    } else if (typeof value === 'string') {
+      // Single selection options
+      const option = item.options.find((opt) => opt.id.toString() === key);
+      const selectedOption = option?.options.find((opt) => opt.id.toString() === value);
+      return total + (selectedOption?.price || 0);
+    } else if (typeof value === 'boolean' && value) {
+      // Boolean options
+      const option = item.options.find((opt) => opt.id.toString() === key);
+      return total + (option?.price || 0);
+    }
+    return total;
+  }, 0);
+
+  return (basePrice + optionsPrice) * quantity;
+};
+
 // Create the cart context with default values
 const CartContext = createContext<CartContextType>({
   items: [],
@@ -41,7 +107,7 @@ const CartContext = createContext<CartContextType>({
   toggleCart: () => {},
   addItem: () => {},
   removeItem: () => {},
-  updateQuantity: () => {},
+  updateItem: () => {},
   clearCart: () => {},
   totalItems: 0,
   totalPrice: 0,
@@ -73,7 +139,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Calculate totals whenever items change
   useEffect(() => {
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-    const price = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const price = items.reduce((total, cartItem) => total + cartItem.subtotal, 0);
 
     setTotalItems(itemCount);
     setTotalPrice(price);
@@ -88,7 +154,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clearError = () => setError(null);
 
   // Cart item management functions
-  const addItem = (item: ItemResponse, newMerchantId: string, newMerchantName: string, quantity: number = 1, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => {
+  const addItem = (
+    item: ItemResponse,
+    newMerchantId: string,
+    newMerchantName: string,
+    quantity: number = 1,
+    selectedOptions: Record<string, boolean | string | string[] | null>,
+    merchantDeliveryFee?: number,
+    merchantCategory?: string,
+    merchantDeliveryTime?: number,
+  ) => {
     // Check if the cart is empty
     if (items.length === 0) {
       // Cart is empty, set the merchant ID and name
@@ -110,26 +185,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clearError();
 
     setItems(prevItems => {
-      // Check if item already exists in cart
-      const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
-
-      if (existingItemIndex >= 0) {
-        // Item exists, add the specified quantity
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + quantity,
-        };
-        return updatedItems;
-      } else {
-        // Item doesn't exist, add new item with the specified quantity
-        return [...prevItems, {
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: quantity,
-        }];
-      }
+      return [...prevItems, {
+        id: Date.now(),
+        quantity: quantity,
+        selectedOptions: selectedOptions,
+        readableOptions: generateReadableOptions(item, selectedOptions),
+        subtotal: calculateSubtotal(item, quantity, selectedOptions),
+        item: item,
+      }];
     });
 
     // Update merchant delivery fee if provided
@@ -141,19 +204,27 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     openCart();
   };
 
-  const removeItem = (itemId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  const removeItem = (itemId: number) => {
+    setItems(prevItems => prevItems.filter(cartItem => cartItem.id !== itemId));
   };
 
-  const updateQuantity = (itemId: string, quantity: number) => {
+  const updateItem = (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>) => {
     if (quantity <= 0) {
       removeItem(itemId);
       return;
     }
 
     setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId ? { ...item, quantity } : item
+      prevItems.map(cartItem =>
+        cartItem.id === itemId ?
+          {
+            ...cartItem,
+            quantity,
+            selectedOptions,
+            readableOptions: generateReadableOptions(cartItem.item, selectedOptions),
+            subtotal: calculateSubtotal(cartItem.item, quantity, selectedOptions),
+          }
+          : cartItem,
       )
     );
   };
@@ -178,7 +249,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toggleCart,
         addItem,
         removeItem,
-        updateQuantity,
+        updateItem,
         clearCart,
         totalItems,
         totalPrice,

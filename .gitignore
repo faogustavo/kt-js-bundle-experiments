@@ -54,4 +54,7 @@ DerivedData
 # JS Dist Folder
 dist/
 
-/git-commit-message.txt
+# AI Helper Files
+git-commit-message.txt
+git.diff
+git.log

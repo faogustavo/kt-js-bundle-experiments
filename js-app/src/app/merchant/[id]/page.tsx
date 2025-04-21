@@ -36,8 +36,18 @@ const MenuItem = ({
     setShowQuantityPopup(true);
   };
 
-  const handleConfirmAddToCart = (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee: number, merchantCategory?: string, merchantDeliveryTime?: number) => {
-    addItem(item, merchantId, merchantName, quantity, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
+  const handleConfirmAddToCart = (
+    item: ItemResponse,
+    _cartItemId: number | undefined,
+    merchantId: string,
+    merchantName: string,
+    quantity: number,
+    selectedOptions: Record<string, boolean | string | string[] | null>,
+    merchantDeliveryFee: number,
+    merchantCategory?: string,
+    merchantDeliveryTime?: number,
+  ) => {
+    addItem(item, merchantId, merchantName, quantity, selectedOptions, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
     setShowQuantityPopup(false);
   };
 
