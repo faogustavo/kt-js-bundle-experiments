@@ -8,6 +8,7 @@ export interface CartItem {
   quantity: number;
   selectedOptions: Record<string, boolean | string | string[] | null>;
   readableOptions: Record<string, number>;
+  observation: string;
   subtotal: number;
   item: ItemResponse;
 }
@@ -19,9 +20,9 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
+  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, observation: string, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
   removeItem: (itemId: number) => void;
-  updateItem: (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>) => void;
+  updateItem: (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, observation: string) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -160,6 +161,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     newMerchantName: string,
     quantity: number = 1,
     selectedOptions: Record<string, boolean | string | string[] | null>,
+    observation: string,
     merchantDeliveryFee?: number,
     merchantCategory?: string,
     merchantDeliveryTime?: number,
@@ -191,6 +193,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedOptions: selectedOptions,
         readableOptions: generateReadableOptions(item, selectedOptions),
         subtotal: calculateSubtotal(item, quantity, selectedOptions),
+        observation: observation,
         item: item,
       }];
     });
@@ -208,7 +211,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setItems(prevItems => prevItems.filter(cartItem => cartItem.id !== itemId));
   };
 
-  const updateItem = (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>) => {
+  const updateItem = (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, observation: string) => {
     if (quantity <= 0) {
       removeItem(itemId);
       return;
@@ -221,6 +224,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...cartItem,
             quantity,
             selectedOptions,
+            observation: observation,
             readableOptions: generateReadableOptions(cartItem.item, selectedOptions),
             subtotal: calculateSubtotal(cartItem.item, quantity, selectedOptions),
           }

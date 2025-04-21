@@ -61,14 +61,15 @@ const CartDrawer: React.FC = () => {
     merchantName: string,
     quantity: number,
     selectedOptions: Record<string, boolean | string | string[] | null>,
+    observation: string,
     merchantDeliveryFee: number,
     merchantCategory?: string,
     merchantDeliveryTime?: number,
   ) => {
     if (cartItemId) {
-      updateItem(cartItemId, quantity, selectedOptions);
+      updateItem(cartItemId, quantity, selectedOptions, observation);
     } else {
-      addItem(item, merchantId, merchantName, quantity, selectedOptions, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
+      addItem(item, merchantId, merchantName, quantity, selectedOptions, observation, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
     }
     setShowQuantityPopup(false);
     setEditingItem(null);
@@ -91,6 +92,7 @@ const CartDrawer: React.FC = () => {
           merchantDeliveryFee={ 0 } // Not needed for editing
           initialQuantity={ editingItem.quantity }
           initialOptions={ editingItem.selectedOptions }
+          initialObservation={ editingItem.observation }
           isEdit={ true }
           onConfirm={ handleConfirmEdit }
           onCancel={ handleCancelEdit }
@@ -250,6 +252,13 @@ const CartDrawer: React.FC = () => {
                         </p>
                       ))
                     }
+                    {/* Display observation if available */ }
+                    { cartItem.observation && (
+                      <blockquote
+                        className="mt-2 text-sm text-gray-600 dark:text-gray-400 border-l-4 border-gray-300 dark:border-gray-600 pl-2">
+                        { cartItem.observation }
+                      </blockquote>
+                    ) }
                     <div className="flex items-center mt-2">
                       <span className="mr-2">Qty: { cartItem.quantity }</span>
                       <button

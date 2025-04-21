@@ -12,6 +12,7 @@ interface MenuItemPopupProps {
   merchantDeliveryTime?: number;
   initialQuantity?: number;
   initialOptions?: Record<string, boolean | string | string[] | null>;
+  initialObservation?: string;
   isEdit?: boolean;
   onConfirm: (
     item: ItemResponse,
@@ -20,6 +21,7 @@ interface MenuItemPopupProps {
     merchantName: string,
     quantity: number,
     selectedOptions: Record<string, boolean | string | string[] | null>,
+    observation: string,
     merchantDeliveryFee: number,
     merchantCategory?: string,
     merchantDeliveryTime?: number,
@@ -183,6 +185,7 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
                                                        merchantDeliveryTime,
                                                        initialQuantity = 1,
                                                        initialOptions = {},
+                                                       initialObservation = '',
                                                        isEdit = false,
                                                        onConfirm,
                                                        onCancel,
@@ -192,6 +195,7 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
   // Define a type for the selected options
   type OptionValue = boolean | string | string[] | null;
   const [selectedOptions, setSelectedOptions] = useState<Record<string, OptionValue>>(initialOptions);
+  const [observation, setObservation] = useState(initialObservation); // New state for observation
 
   // Calculate total price including selected options
   useEffect(() => {
@@ -249,6 +253,7 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
       merchantName,
       quantity,
       selectedOptions,
+      observation,
       merchantDeliveryFee,
       merchantCategory,
       merchantDeliveryTime,
@@ -294,6 +299,21 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
           <div className="flex justify-between items-center mb-6">
             <span className="font-semibold">Total:</span>
             <span className="font-bold text-lg">{ formatPrice(totalPrice * quantity) }</span>
+          </div>
+
+          {/* Observation input */ }
+          <div className="mb-4">
+            <label htmlFor="observation" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Observation
+            </label>
+            <textarea
+              id="observation"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 p-2"
+              style={ { height: '100px', resize: 'none' } } // Fixed height
+              value={ observation }
+              onChange={ (e) => setObservation(e.target.value) }
+              placeholder="Add any special instructions or notes here..."
+            />
           </div>
 
           { isEdit && quantity === 0 && (

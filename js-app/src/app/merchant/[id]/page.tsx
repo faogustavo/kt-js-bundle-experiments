@@ -43,11 +43,12 @@ const MenuItem = ({
     merchantName: string,
     quantity: number,
     selectedOptions: Record<string, boolean | string | string[] | null>,
+    observation: string,
     merchantDeliveryFee: number,
     merchantCategory?: string,
     merchantDeliveryTime?: number,
   ) => {
-    addItem(item, merchantId, merchantName, quantity, selectedOptions, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
+    addItem(item, merchantId, merchantName, quantity, selectedOptions, observation, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
     setShowQuantityPopup(false);
   };
 
