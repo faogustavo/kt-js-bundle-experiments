@@ -5,6 +5,8 @@ import { ItemResponse, MerchantResponse, MerchantService } from 'kt-js-experimen
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { useState } from 'react';
+import QuantitySelectionPopup from '@/components/QuantitySelectionPopup';
 
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
@@ -17,13 +19,31 @@ const MenuItem = ({
                     merchantId,
                     merchantName,
                     merchantDeliveryFee,
+                    merchantCategory,
+                    merchantDeliveryTime,
                   }: {
   item: ItemResponse,
   merchantId: string,
   merchantName: string,
-  merchantDeliveryFee: number
+  merchantDeliveryFee: number,
+  merchantCategory: string,
+  merchantDeliveryTime: number
 }) => {
   const { addItem } = useCart();
+  const [showQuantityPopup, setShowQuantityPopup] = useState(false);
+
+  const handleAddToCart = () => {
+    setShowQuantityPopup(true);
+  };
+
+  const handleConfirmAddToCart = (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee: number, merchantCategory?: string, merchantDeliveryTime?: number) => {
+    addItem(item, merchantId, merchantName, quantity, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
+    setShowQuantityPopup(false);
+  };
+
+  const handleCancelAddToCart = () => {
+    setShowQuantityPopup(false);
+  };
 
   return (
     <div className="border rounded-lg p-4 hover:shadow-md transition-shadow flex">
@@ -47,7 +67,7 @@ const MenuItem = ({
         )}
         { item.isAvailable && (
           <button
-            onClick={ () => addItem(item, merchantId, merchantName, merchantDeliveryFee) }
+            onClick={ handleAddToCart }
             className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
             aria-label={ `Add ${ item.name } to cart` }
           >
@@ -55,6 +75,19 @@ const MenuItem = ({
           </button>
         ) }
       </div>
+
+      { showQuantityPopup && (
+        <QuantitySelectionPopup
+          item={ item }
+          merchantId={ merchantId }
+          merchantName={ merchantName }
+          merchantDeliveryFee={ merchantDeliveryFee }
+          merchantCategory={ merchantCategory }
+          merchantDeliveryTime={ merchantDeliveryTime }
+          onConfirm={ handleConfirmAddToCart }
+          onCancel={ handleCancelAddToCart }
+        />
+      ) }
     </div>
   );
 };
@@ -190,6 +223,8 @@ export default function MerchantDetails() {
                     merchantId={ merchantId }
                     merchantName={ merchant.name }
                     merchantDeliveryFee={ merchant.deliveryFee }
+                    merchantCategory={ merchant.category }
+                    merchantDeliveryTime={ merchant.deliveryTime }
                   />
                 ))}
               </div>

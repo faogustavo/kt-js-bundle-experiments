@@ -1,6 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { useCart } from '@/context/CartContext';
+import { CartItem, useCart } from '@/context/CartContext';
+import QuantitySelectionPopup from './QuantitySelectionPopup';
+import { ItemResponse } from 'kt-js-experiment';
 
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
@@ -17,6 +19,9 @@ const CartDrawer: React.FC = () => {
     updateQuantity,
     clearCart,
     merchantDeliveryFee,
+    merchantName,
+    merchantCategory,
+    merchantDeliveryTime,
     error,
     clearError,
   } = useCart();
@@ -25,6 +30,8 @@ const CartDrawer: React.FC = () => {
   const total = items.length > 0 ? totalPrice + merchantDeliveryFee : 0;
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
+  const [showQuantityPopup, setShowQuantityPopup] = useState(false);
 
   const handleClearCart = () => {
     setShowConfirmDialog(true);
@@ -40,8 +47,39 @@ const CartDrawer: React.FC = () => {
     setShowConfirmDialog(false);
   };
 
+  const handleEditItem = (item: CartItem) => {
+    setEditingItem(item);
+    setShowQuantityPopup(true);
+  };
+
+  // We only need item and quantity for editing, ignoring other parameters
+  const handleConfirmEdit = (item: CartItem | ItemResponse, _merchantId: string, _merchantName: string, quantity: number) => {
+    updateQuantity(item.id, quantity);
+    setShowQuantityPopup(false);
+    setEditingItem(null);
+  };
+
+  const handleCancelEdit = () => {
+    setShowQuantityPopup(false);
+    setEditingItem(null);
+  };
+
   return (
     <>
+      {/* Quantity Selection Popup */ }
+      { showQuantityPopup && editingItem && (
+        <QuantitySelectionPopup
+          item={ editingItem }
+          merchantId={ editingItem.id } // Using item ID as merchant ID since we don't need it for editing
+          merchantName="" // Not needed for editing
+          merchantDeliveryFee={ 0 } // Not needed for editing
+          initialQuantity={ editingItem.quantity }
+          isEdit={ true }
+          onConfirm={ handleConfirmEdit }
+          onCancel={ handleCancelEdit }
+        />
+      ) }
+
       {/* Confirmation Dialog */ }
       { showConfirmDialog && (
         <>
@@ -128,7 +166,26 @@ const CartDrawer: React.FC = () => {
       >
         {/* Header */ }
         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
-          <h2 className="text-xl font-semibold">Your Cart</h2>
+          <div>
+            <h2 className="text-xl font-semibold">Your Cart</h2>
+            { items.length > 0 && merchantName && (
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mt-1">
+                <span className="font-bold">{ merchantName }</span>
+                { merchantCategory && (
+                  <>
+                    <span>•</span>
+                    <span>{ merchantCategory }</span>
+                  </>
+                ) }
+                { merchantDeliveryTime && (
+                  <>
+                    <span>•</span>
+                    <span>{ merchantDeliveryTime } min delivery</span>
+                  </>
+                ) }
+              </div>
+            ) }
+          </div>
           <button
             onClick={ closeCart }
             className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -160,62 +217,29 @@ const CartDrawer: React.FC = () => {
           ) : (
             <ul className="space-y-4">
               { items.map((cartItem) => (
-                <li key={ cartItem.item.id } className="flex border-b dark:border-gray-700 pb-4">
+                <li key={ cartItem.id } className="flex border-b dark:border-gray-700 pb-4">
                   <div className="flex-1">
-                    <h3 className="font-medium">{ cartItem.item.name }</h3>
+                    <h3 className="font-medium">{ cartItem.name }</h3>
                     <p className="text-gray-500 dark:text-gray-400 text-sm">
-                      { formatPrice(cartItem.item.price) } each
+                      { formatPrice(cartItem.price) } each
                     </p>
                     <div className="flex items-center mt-2">
+                      <span className="mr-2">Qty: { cartItem.quantity }</span>
                       <button
-                        onClick={ () => updateQuantity(cartItem.item.id, cartItem.quantity - 1) }
-                        className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        aria-label="Decrease quantity"
+                        onClick={ () => handleEditItem(cartItem) }
+                        className="px-2 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded"
+                        aria-label="Edit quantity"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={ 2 }
-                            d="M20 12H4"
-                          />
-                        </svg>
-                      </button>
-                      <span className="mx-2">{ cartItem.quantity }</span>
-                      <button
-                        onClick={ () => updateQuantity(cartItem.item.id, cartItem.quantity + 1) }
-                        className="p-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        aria-label="Increase quantity"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={ 2 }
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
+                        Edit
                       </button>
                     </div>
                   </div>
                   <div className="flex flex-col justify-between items-end">
                     <span className="font-medium">
-                      { formatPrice(cartItem.item.price * cartItem.quantity) }
+                      { formatPrice(cartItem.price * cartItem.quantity) }
                     </span>
                     <button
-                      onClick={ () => removeItem(cartItem.item.id) }
+                      onClick={ () => removeItem(cartItem.id) }
                       className="text-red-500 hover:text-red-700 text-sm"
                       aria-label="Remove item"
                     >

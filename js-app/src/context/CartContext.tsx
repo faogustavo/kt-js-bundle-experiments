@@ -4,7 +4,9 @@ import { ItemResponse } from 'kt-js-experiment';
 
 // Define the cart item type with quantity
 export interface CartItem {
-  item: ItemResponse;
+  id: string;
+  name: string;
+  price: number;
   quantity: number;
 }
 
@@ -15,7 +17,7 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  addItem: (item: ItemResponse, merchantId: string, merchantName: string, merchantDeliveryFee?: number) => void;
+  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -24,6 +26,8 @@ interface CartContextType {
   merchantDeliveryFee: number;
   merchantId: string | null;
   merchantName: string | null;
+  merchantCategory: string | null;
+  merchantDeliveryTime: number | null;
   error: string | null;
   clearError: () => void;
 }
@@ -44,6 +48,8 @@ const CartContext = createContext<CartContextType>({
   merchantDeliveryFee: 0,
   merchantId: null,
   merchantName: null,
+  merchantCategory: null,
+  merchantDeliveryTime: null,
   error: null,
   clearError: () => {},
 });
@@ -60,12 +66,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [merchantDeliveryFee, setMerchantDeliveryFee] = useState(0);
   const [merchantId, setMerchantId] = useState<string | null>(null);
   const [merchantName, setMerchantName] = useState<string | null>(null);
+  const [merchantCategory, setMerchantCategory] = useState<string | null>(null);
+  const [merchantDeliveryTime, setMerchantDeliveryTime] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Calculate totals whenever items change
   useEffect(() => {
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-    const price = items.reduce((total, item) => total + (item.item.price * item.quantity), 0);
+    const price = items.reduce((total, item) => total + (item.price * item.quantity), 0);
 
     setTotalItems(itemCount);
     setTotalPrice(price);
@@ -80,12 +88,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clearError = () => setError(null);
 
   // Cart item management functions
-  const addItem = (item: ItemResponse, newMerchantId: string, newMerchantName: string, merchantDeliveryFee?: number) => {
+  const addItem = (item: ItemResponse, newMerchantId: string, newMerchantName: string, quantity: number = 1, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => {
     // Check if the cart is empty
     if (items.length === 0) {
       // Cart is empty, set the merchant ID and name
       setMerchantId(newMerchantId);
       setMerchantName(newMerchantName);
+      if (merchantCategory) {
+        setMerchantCategory(merchantCategory);
+      }
+      if (merchantDeliveryTime) {
+        setMerchantDeliveryTime(merchantDeliveryTime);
+      }
     } else if (newMerchantId !== merchantId) {
       // Cart is not empty and item is from a different merchant
       setError(`Your cart already has items from ${ merchantName }. Please clear your cart before adding items from ${ newMerchantName }.`);
@@ -97,19 +111,24 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setItems(prevItems => {
       // Check if item already exists in cart
-      const existingItemIndex = prevItems.findIndex(cartItem => cartItem.item.id === item.id);
+      const existingItemIndex = prevItems.findIndex(cartItem => cartItem.id === item.id);
 
       if (existingItemIndex >= 0) {
-        // Item exists, increment quantity
+        // Item exists, add the specified quantity
         const updatedItems = [...prevItems];
         updatedItems[existingItemIndex] = {
           ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + 1,
+          quantity: updatedItems[existingItemIndex].quantity + quantity,
         };
         return updatedItems;
       } else {
-        // Item doesn't exist, add new item with quantity 1
-        return [...prevItems, { item, quantity: 1 }];
+        // Item doesn't exist, add new item with the specified quantity
+        return [...prevItems, {
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: quantity,
+        }];
       }
     });
 
@@ -123,7 +142,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const removeItem = (itemId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.item.id !== itemId));
+    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
   };
 
   const updateQuantity = (itemId: string, quantity: number) => {
@@ -134,13 +153,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     setItems(prevItems =>
       prevItems.map(item =>
-        item.item.id === itemId ? { ...item, quantity } : item
+        item.id === itemId ? { ...item, quantity } : item
       )
     );
   };
 
   const clearCart = () => {
     setItems([]);
+    setMerchantId(null);
+    setMerchantName(null);
+    setMerchantCategory(null);
+    setMerchantDeliveryTime(null);
+    setMerchantDeliveryFee(0);
   };
 
   // Provide the cart context to children components
@@ -161,6 +185,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         merchantDeliveryFee,
         merchantId,
         merchantName,
+        merchantCategory,
+        merchantDeliveryTime,
         error,
         clearError,
       } }
