@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { ItemResponse } from 'kt-js-experiment';
+import { CartError, useCart } from '@/context/CartContext';
 
 interface MenuItemPopupProps {
   item: ItemResponse;
@@ -14,19 +15,7 @@ interface MenuItemPopupProps {
   initialOptions?: Record<string, boolean | string | string[] | null>;
   initialObservation?: string;
   isEdit?: boolean;
-  onConfirm: (
-    item: ItemResponse,
-    cartItemId: number | undefined,
-    merchantId: string,
-    merchantName: string,
-    quantity: number,
-    selectedOptions: Record<string, boolean | string | string[] | null>,
-    observation: string,
-    merchantDeliveryFee: number,
-    merchantCategory?: string,
-    merchantDeliveryTime?: number,
-  ) => void;
-  onCancel: () => void;
+  onDismiss: () => void;
 }
 
 interface ItemOptionsProps {
@@ -187,8 +176,7 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
                                                        initialOptions = {},
                                                        initialObservation = '',
                                                        isEdit = false,
-                                                       onConfirm,
-                                                       onCancel,
+                                                       onDismiss,
                                                      }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
   const [totalPrice, setTotalPrice] = useState(item.price);
@@ -196,6 +184,9 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
   type OptionValue = boolean | string | string[] | null;
   const [selectedOptions, setSelectedOptions] = useState<Record<string, OptionValue>>(initialOptions);
   const [observation, setObservation] = useState(initialObservation); // New state for observation
+  const [error, setError] = useState<CartError>(null); // New state for error
+
+  const { addItem, updateItem, openCart } = useCart();
 
   // Calculate total price including selected options
   useEffect(() => {
@@ -246,9 +237,15 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
   };
 
   const handleConfirm = () => {
-    onConfirm(
+    if (cartItemId) {
+      setError(null); // Clear any previous error
+      updateItem(cartItemId, quantity, selectedOptions, observation);
+      onDismiss();
+      return;
+    }
+
+    const result = addItem(
       item,
-      cartItemId,
       merchantId,
       merchantName,
       quantity,
@@ -258,12 +255,20 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
       merchantCategory,
       merchantDeliveryTime,
     );
+
+    if (result) {
+      setError(result); // Store the error
+    } else {
+      setError(null); // Clear any previous error
+      onDismiss();
+      openCart();
+    }
   };
 
   return (
     <>
       {/* Backdrop */ }
-      <div className="fixed inset-0 bg-black/50 z-50 transition-opacity" onClick={ onCancel }/>
+      <div className="fixed inset-0 bg-black/50 z-50 transition-opacity" onClick={ onDismiss }/>
 
       {/* Popup */ }
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -272,7 +277,7 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
           <div className="flex justify-between items-start mb-4">
             <h3 className="text-lg font-semibold">{ item.name }</h3>
             <button
-              onClick={ onCancel }
+              onClick={ onDismiss }
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               aria-label="Close popup"
             >
@@ -317,8 +322,16 @@ const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
           </div>
 
           { isEdit && quantity === 0 && (
-            <div className="mb-4 p-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
+            <div className="mb-4 p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-md">
               Setting quantity to 0 will remove this item from your cart.
+            </div>
+          ) }
+
+          {/* Display error message if present */ }
+          { error && (
+            <div className="mb-4 p-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
+              { error === 'different merchant' && 'You can only add items from the same merchant to your cart.' }
+              { error === 'unknown error' && 'An unknown error occurred. Please try again.' }
             </div>
           ) }
 

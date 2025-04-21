@@ -2,6 +2,8 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { ItemResponse } from 'kt-js-experiment';
 
+export type CartError = 'different merchant' | 'unknown error' | null
+
 // Define the cart item type with quantity
 export interface CartItem {
   id: number,
@@ -20,7 +22,7 @@ interface CartContextType {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, observation: string, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
+  addItem: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, observation: string, merchantDeliveryFee?: number, merchantCategory?: string, merchantDeliveryTime?: number) => CartError;
   removeItem: (itemId: number) => void;
   updateItem: (itemId: number, quantity: number, selectedOptions: Record<string, boolean | string | string[] | null>, observation: string) => void;
   clearCart: () => void;
@@ -31,8 +33,6 @@ interface CartContextType {
   merchantName: string | null;
   merchantCategory: string | null;
   merchantDeliveryTime: number | null;
-  error: string | null;
-  clearError: () => void;
 }
 
 const generateReadableOptions = (
@@ -106,7 +106,7 @@ const CartContext = createContext<CartContextType>({
   openCart: () => {},
   closeCart: () => {},
   toggleCart: () => {},
-  addItem: () => {},
+  addItem: () => null,
   removeItem: () => {},
   updateItem: () => {},
   clearCart: () => {},
@@ -117,8 +117,6 @@ const CartContext = createContext<CartContextType>({
   merchantName: null,
   merchantCategory: null,
   merchantDeliveryTime: null,
-  error: null,
-  clearError: () => {},
 });
 
 // Custom hook to use the cart context
@@ -135,7 +133,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [merchantName, setMerchantName] = useState<string | null>(null);
   const [merchantCategory, setMerchantCategory] = useState<string | null>(null);
   const [merchantDeliveryTime, setMerchantDeliveryTime] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   // Calculate totals whenever items change
   useEffect(() => {
@@ -151,9 +148,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const closeCart = () => setIsOpen(false);
   const toggleCart = () => setIsOpen(!isOpen);
 
-  // Error handling
-  const clearError = () => setError(null);
-
   // Cart item management functions
   const addItem = (
     item: ItemResponse,
@@ -165,7 +159,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     merchantDeliveryFee?: number,
     merchantCategory?: string,
     merchantDeliveryTime?: number,
-  ) => {
+  ): CartError => {
     // Check if the cart is empty
     if (items.length === 0) {
       // Cart is empty, set the merchant ID and name
@@ -178,13 +172,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setMerchantDeliveryTime(merchantDeliveryTime);
       }
     } else if (newMerchantId !== merchantId) {
-      // Cart is not empty and item is from a different merchant
-      setError(`Your cart already has items from ${ merchantName }. Please clear your cart before adding items from ${ newMerchantName }.`);
-      return;
+      return 'different merchant';
     }
-
-    // Clear any previous errors
-    clearError();
 
     setItems(prevItems => {
       return [...prevItems, {
@@ -205,6 +194,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Open the cart drawer whenever an item is added
     openCart();
+
+    return null;
   };
 
   const removeItem = (itemId: number) => {
@@ -229,7 +220,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             subtotal: calculateSubtotal(cartItem.item, quantity, selectedOptions),
           }
           : cartItem,
-      )
+      ),
     );
   };
 
@@ -262,8 +253,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         merchantName,
         merchantCategory,
         merchantDeliveryTime,
-        error,
-        clearError,
       } }
     >
       { children }
@@ -272,3 +261,4 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 export default CartContext;
+

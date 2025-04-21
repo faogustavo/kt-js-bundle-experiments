@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { CartItem, useCart } from '@/context/CartContext';
 import MenuItemPopup from './MenuItemPopup';
-import { ItemResponse } from 'kt-js-experiment';
 
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
@@ -15,16 +14,12 @@ const CartDrawer: React.FC = () => {
     closeCart,
     items,
     totalPrice,
-    addItem,
-    updateItem,
     removeItem,
     clearCart,
     merchantDeliveryFee,
     merchantName,
     merchantCategory,
     merchantDeliveryTime,
-    error,
-    clearError,
   } = useCart();
 
   // Calculate total with delivery fee (only when there are items)
@@ -32,7 +27,6 @@ const CartDrawer: React.FC = () => {
 
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<CartItem | null>(null);
-  const [showQuantityPopup, setShowQuantityPopup] = useState(false);
 
   const handleClearCart = () => {
     setShowConfirmDialog(true);
@@ -48,42 +42,13 @@ const CartDrawer: React.FC = () => {
     setShowConfirmDialog(false);
   };
 
-  const handleEditItem = (item: CartItem) => {
-    setEditingItem(item);
-    setShowQuantityPopup(true);
-  };
-
-  // We only need item and quantity for editing, ignoring other parameters
-  const handleConfirmEdit = (
-    item: ItemResponse,
-    cartItemId: number | undefined,
-    merchantId: string,
-    merchantName: string,
-    quantity: number,
-    selectedOptions: Record<string, boolean | string | string[] | null>,
-    observation: string,
-    merchantDeliveryFee: number,
-    merchantCategory?: string,
-    merchantDeliveryTime?: number,
-  ) => {
-    if (cartItemId) {
-      updateItem(cartItemId, quantity, selectedOptions, observation);
-    } else {
-      addItem(item, merchantId, merchantName, quantity, selectedOptions, observation, merchantDeliveryFee, merchantCategory, merchantDeliveryTime);
-    }
-    setShowQuantityPopup(false);
-    setEditingItem(null);
-  };
-
-  const handleCancelEdit = () => {
-    setShowQuantityPopup(false);
-    setEditingItem(null);
-  };
+  const handleEditItem = (item: CartItem) => setEditingItem(item);
+  const handleOnDismiss = () => setEditingItem(null)
 
   return (
     <>
       {/* Menu Item Popup */ }
-      { showQuantityPopup && editingItem && (
+      { editingItem && (
         <MenuItemPopup
           item={ editingItem.item }
           cartItemId={ editingItem.id }
@@ -94,8 +59,7 @@ const CartDrawer: React.FC = () => {
           initialOptions={ editingItem.selectedOptions }
           initialObservation={ editingItem.observation }
           isEdit={ true }
-          onConfirm={ handleConfirmEdit }
-          onCancel={ handleCancelEdit }
+          onDismiss={ handleOnDismiss }
         />
       ) }
 
@@ -119,49 +83,6 @@ const CartDrawer: React.FC = () => {
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
                 >
                   Clear
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      ) }
-
-      {/* Error Dialog */ }
-      { error && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-50 transition-opacity"/>
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-              <div className="flex items-start mb-4">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-red-600 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                          clipRule="evenodd"/>
-                  </svg>
-                </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-lg font-semibold text-red-800 dark:text-red-300">Error</h3>
-                </div>
-                <button
-                  onClick={ clearError }
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  aria-label="Close error"
-                >
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"/>
-                  </svg>
-                </button>
-              </div>
-              <p className="mb-6 text-red-700 dark:text-red-300">{ error }</p>
-              <div className="flex justify-end">
-                <button
-                  onClick={ clearError }
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
-                >
-                  Close
                 </button>
               </div>
             </div>
