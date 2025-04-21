@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useState } from 'react';
-import QuantitySelectionPopup from '@/components/QuantitySelectionPopup';
+import MenuItemPopup from '@/components/MenuItemPopup';
 
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
@@ -46,7 +46,14 @@ const MenuItem = ({
   };
 
   return (
-    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow flex">
+    <div
+      className={ `border rounded-lg p-4 transition-all duration-200 flex ${
+        item.isAvailable
+          ? 'hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-blue-300 cursor-pointer'
+          : 'opacity-75'
+      }` }
+      onClick={ item.isAvailable ? handleAddToCart : undefined }
+    >
       <div className="relative h-20 w-20 min-w-20 mr-4">
         <Image
           src={item.imageUrl}
@@ -65,19 +72,10 @@ const MenuItem = ({
         {!item.isAvailable && (
           <p className="text-red-500 text-sm mt-2">Currently unavailable</p>
         )}
-        { item.isAvailable && (
-          <button
-            onClick={ handleAddToCart }
-            className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
-            aria-label={ `Add ${ item.name } to cart` }
-          >
-            Add to Cart
-          </button>
-        ) }
       </div>
 
       { showQuantityPopup && (
-        <QuantitySelectionPopup
+        <MenuItemPopup
           item={ item }
           merchantId={ merchantId }
           merchantName={ merchantName }
@@ -143,10 +141,6 @@ export default function MerchantDetails() {
 
   return (
     <div className="min-h-screen px-4 sm:px-8 font-[family-name:var(--font-geist-sans)]">
-      <Link href="/" className="text-blue-500 hover:underline mb-6 inline-block">
-        ← Back to restaurants
-      </Link>
-
       <div className="max-w-4xl mx-auto">
         <div className="relative h-48 sm:h-64 md:h-80 w-full mb-6">
           <Image

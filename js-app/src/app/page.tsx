@@ -37,13 +37,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen px-4 sm:px-8 font-[family-name:var(--font-geist-sans)]">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Restaurants</h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Find your favorite food from our selection of restaurants
-        </p>
-      </div>
-
       <div>
         <HomeList merchants={merchants} />
       </div>

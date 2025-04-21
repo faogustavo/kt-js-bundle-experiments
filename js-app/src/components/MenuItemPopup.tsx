@@ -1,10 +1,9 @@
 'use client';
 import React, { useState } from 'react';
 import { ItemResponse } from 'kt-js-experiment';
-import { CartItem } from '@/context/CartContext';
 
-interface QuantitySelectionPopupProps {
-  item: ItemResponse | CartItem;
+interface MenuItemPopupProps {
+  item: ItemResponse;
   merchantId: string;
   merchantName: string;
   merchantDeliveryFee: number;
@@ -12,7 +11,7 @@ interface QuantitySelectionPopupProps {
   merchantDeliveryTime?: number;
   initialQuantity?: number;
   isEdit?: boolean;
-  onConfirm: (item: ItemResponse | CartItem, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
+  onConfirm: (item: ItemResponse, merchantId: string, merchantName: string, quantity: number, merchantDeliveryFee: number, merchantCategory?: string, merchantDeliveryTime?: number) => void;
   onCancel: () => void;
 }
 
@@ -21,18 +20,18 @@ const formatPrice = (price: number): string => {
   return `$${ (price / 100).toFixed(2) }`;
 };
 
-const QuantitySelectionPopup: React.FC<QuantitySelectionPopupProps> = ({
-                                                                         item,
-                                                                         merchantId,
-                                                                         merchantName,
-                                                                         merchantDeliveryFee,
-                                                                         merchantCategory,
-                                                                         merchantDeliveryTime,
-                                                                         initialQuantity = 1,
-                                                                         isEdit = false,
-                                                                         onConfirm,
-                                                                         onCancel,
-                                                                       }) => {
+const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
+                                                       item,
+                                                       merchantId,
+                                                       merchantName,
+                                                       merchantDeliveryFee,
+                                                       merchantCategory,
+                                                       merchantDeliveryTime,
+                                                       initialQuantity = 1,
+                                                       isEdit = false,
+                                                       onConfirm,
+                                                       onCancel,
+                                                     }) => {
   const [quantity, setQuantity] = useState(initialQuantity);
 
   const handleIncrement = () => {
@@ -147,4 +146,4 @@ const QuantitySelectionPopup: React.FC<QuantitySelectionPopupProps> = ({
   );
 };
 
-export default QuantitySelectionPopup;
+export default MenuItemPopup;

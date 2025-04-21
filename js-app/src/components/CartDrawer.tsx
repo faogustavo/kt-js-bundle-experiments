@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { CartItem, useCart } from '@/context/CartContext';
-import QuantitySelectionPopup from './QuantitySelectionPopup';
+import MenuItemPopup from './MenuItemPopup';
 import { ItemResponse } from 'kt-js-experiment';
 
 // Helper function to format price from cents to dollars
@@ -66,9 +66,9 @@ const CartDrawer: React.FC = () => {
 
   return (
     <>
-      {/* Quantity Selection Popup */ }
+      {/* Menu Item Popup */ }
       { showQuantityPopup && editingItem && (
-        <QuantitySelectionPopup
+        <MenuItemPopup
           item={ editingItem }
           merchantId={ editingItem.id } // Using item ID as merchant ID since we don't need it for editing
           merchantName="" // Not needed for editing
