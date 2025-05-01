@@ -30,12 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.valvassori.domain.MerchantResponse
-
-private fun formatPrice(price: Int): String {
-    val dollars = price / 100
-    val cents = price % 100
-    return "$$dollars.${cents.toString().padStart(2, '0')}"
-}
+import dev.valvassori.ext.formatAsMoney
 
 @Composable
 fun MerchantList(
@@ -198,7 +193,7 @@ private fun MerchantCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = if (merchant.deliveryFee == 0) "Free Delivery" else "Delivery ${formatPrice(merchant.deliveryFee)}",
+                        text = if (merchant.deliveryFee == 0) "Free Delivery" else "Delivery ${merchant.deliveryFee.formatAsMoney()}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -206,7 +201,7 @@ private fun MerchantCard(
 
                 if (merchant.minimumOrder > 0) {
                     Text(
-                        text = "Min. order: ${formatPrice(merchant.minimumOrder)}",
+                        text = "Min. order: ${merchant.minimumOrder.formatAsMoney()}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
