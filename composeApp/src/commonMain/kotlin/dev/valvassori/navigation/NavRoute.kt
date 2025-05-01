@@ -9,10 +9,15 @@ import kotlinx.serialization.Serializable
 object Home
 
 @Serializable
-data class MerchantDetails(val merchantId: String)
+data class MerchantDetails(
+    val merchantId: String,
+)
 
 @Serializable
-data class MenuItemDetail(val merchantId: String, val itemId: String)
+data class MenuItemDetail(
+    val merchantId: String,
+    val itemId: String,
+)
 
 @Serializable
-object Cart 
+object Cart

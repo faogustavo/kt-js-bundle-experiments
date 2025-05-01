@@ -14,9 +14,7 @@ import dev.valvassori.presentation.cart.CartViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun NavGraph(
-    navController: NavHostController = rememberNavController()
-) {
+fun NavGraph(navController: NavHostController = rememberNavController()) {
     // Create a single CartViewModel instance to share across screens
     val cartViewModel: CartViewModel = koinViewModel()
 
@@ -27,7 +25,7 @@ fun NavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = Home
+        startDestination = Home,
     ) {
         composable<Home> {
             HomeScreen(
@@ -35,7 +33,7 @@ fun NavGraph(
                     navController.navigate(MerchantDetails(merchantId))
                 },
                 onNavigateToCart = navigateToCart,
-                cartViewModel = cartViewModel
+                cartViewModel = cartViewModel,
             )
         }
 
@@ -49,20 +47,20 @@ fun NavGraph(
                 },
                 onNavigateToCart = navigateToCart,
                 viewModel = koinViewModel(),
-                cartViewModel = cartViewModel
+                cartViewModel = cartViewModel,
             )
         }
 
         composable<MenuItemDetail> { backStackEntry ->
             val route: MenuItemDetail = backStackEntry.toRoute()
-            
+
             MenuItemScreen(
                 merchantId = route.merchantId,
                 itemId = route.itemId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCart = navigateToCart,
                 viewModel = koinViewModel(),
-                cartViewModel = cartViewModel
+                cartViewModel = cartViewModel,
             )
         }
 
@@ -73,7 +71,7 @@ fun NavGraph(
                     // TODO: Navigate to checkout screen when implemented
                     navController.popBackStack(Home, false)
                 },
-                viewModel = cartViewModel
+                viewModel = cartViewModel,
             )
         }
     }

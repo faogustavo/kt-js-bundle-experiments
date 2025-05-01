@@ -8,15 +8,12 @@ import dev.valvassori.fake.FakeMerchants
  * Acts as the connection point between the storage (FakeMerchants) and the Application.
  */
 object MerchantService {
-
     /**
      * Gets all merchants from the storage.
      *
      * @return A collection of all merchants
      */
-    fun getAllMerchants(): Collection<Merchant> {
-        return FakeMerchants.allMerchants.values
-    }
+    fun getAllMerchants(): Collection<Merchant> = FakeMerchants.allMerchants.values
 
     /**
      * Gets a merchant by ID from the storage.
@@ -24,9 +21,7 @@ object MerchantService {
      * @param id The ID of the merchant to retrieve
      * @return The merchant with the specified ID, or null if not found
      */
-    fun getMerchantById(id: String): Merchant? {
-        return FakeMerchants.allMerchants[id]
-    }
+    fun getMerchantById(id: String): Merchant? = FakeMerchants.allMerchants[id]
 
     /**
      * Gets all merchants from the storage, simplified for API response.
@@ -34,9 +29,7 @@ object MerchantService {
      *
      * @return A list of simplified merchants
      */
-    fun getAllMerchantsForApiResponse(): List<Merchant> {
-        return simplifyForApiResponse(getAllMerchants())
-    }
+    fun getAllMerchantsForApiResponse(): List<Merchant> = simplifyForApiResponse(getAllMerchants())
 
     /**
      * Simplifies a Merchant object by removing the menu and workingHours to reduce payload size.
@@ -45,9 +38,7 @@ object MerchantService {
      * @param merchant The original merchant object
      * @return A new Merchant object with the same properties but without the menu and workingHours
      */
-    private fun simplifyForApiResponse(merchant: Merchant): Merchant {
-        return merchant.copy(menu = emptyList(), workingHours = emptyList())
-    }
+    private fun simplifyForApiResponse(merchant: Merchant): Merchant = merchant.copy(menu = emptyList(), workingHours = emptyList())
 
     /**
      * Simplifies a collection of Merchant objects by removing their menus and workingHours.
@@ -55,7 +46,5 @@ object MerchantService {
      * @param merchants The collection of merchant objects to simplify
      * @return A list of simplified Merchant objects without menus and workingHours
      */
-    private fun simplifyForApiResponse(merchants: Collection<Merchant>): List<Merchant> {
-        return merchants.map { simplifyForApiResponse(it) }
-    }
+    private fun simplifyForApiResponse(merchants: Collection<Merchant>): List<Merchant> = merchants.map { simplifyForApiResponse(it) }
 }

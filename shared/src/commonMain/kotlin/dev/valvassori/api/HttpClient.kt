@@ -12,22 +12,23 @@ import kotlinx.serialization.json.Json
  * A shared HTTP client for making API requests across all platforms.
  */
 object ApiClient {
-
     /**
      * Creates and configures a Ktor HttpClient with common settings and a specific engine.
      *
      * @param engine The HttpClientEngine to use for the client
      * @return A configured HttpClient instance
      */
-    fun create(engine: HttpClientEngine): HttpClient {
-        return HttpClient(engine) {
+    fun create(engine: HttpClientEngine): HttpClient =
+        HttpClient(engine) {
             // Install content negotiation for JSON serialization/deserialization
             install(ContentNegotiation) {
-                json(Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                })
+                json(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                    },
+                )
             }
 
             // Install logging for debugging
@@ -35,5 +36,4 @@ object ApiClient {
                 level = LogLevel.ALL
             }
         }
-    }
 }

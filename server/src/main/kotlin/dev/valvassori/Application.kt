@@ -18,16 +18,21 @@ const val SERVER_PORT = 8080
 
 fun main() {
     embeddedServer(
-        factory = Netty, port = SERVER_PORT, host = "0.0.0.0", module = Application::module
+        factory = Netty,
+        port = SERVER_PORT,
+        host = "0.0.0.0",
+        module = Application::module,
     ).start(wait = true)
 }
 
 fun Application.module() {
     install(ContentNegotiation) {
-        json(Json {
-            prettyPrint = true
-            isLenient = true
-        })
+        json(
+            Json {
+                prettyPrint = true
+                isLenient = true
+            },
+        )
     }
 
     install(CORS) {

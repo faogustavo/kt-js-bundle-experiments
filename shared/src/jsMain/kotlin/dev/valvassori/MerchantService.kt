@@ -15,11 +15,13 @@ object MerchantService : KoinComponent {
     private val dispatcher = CoroutineScope(window.asCoroutineDispatcher())
     private val repository: MerchantRepository by inject()
 
-    fun getAllMerchants(): Promise<Array<MerchantResponse>> = dispatcher.promise {
-        repository.getAllMerchants()
-    }
+    fun getAllMerchants(): Promise<Array<MerchantResponse>> =
+        dispatcher.promise {
+            repository.getAllMerchants()
+        }
 
-    fun getMerchantById(id: String): Promise<MerchantResponse?> = dispatcher.promise {
-        repository.getMerchantById(id)
-    }
+    fun getMerchantById(id: String): Promise<MerchantResponse?> =
+        dispatcher.promise {
+            repository.getMerchantById(id)
+        }
 }

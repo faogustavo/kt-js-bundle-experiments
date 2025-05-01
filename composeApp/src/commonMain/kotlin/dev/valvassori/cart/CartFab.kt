@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 fun CartFab(
     itemCount: Int,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (itemCount > 0) {
         FloatingActionButton(
@@ -24,20 +24,20 @@ fun CartFab(
             shape = CircleShape,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            modifier = modifier
+            modifier = modifier,
         ) {
             BadgedBox(
                 badge = {
                     Badge {
                         Text(text = itemCount.toString())
                     }
-                }
+                },
             ) {
                 Icon(
                     imageVector = Icons.Default.ShoppingCart,
-                    contentDescription = "Cart"
+                    contentDescription = "Cart",
                 )
             }
         }
     }
-} 
+}

@@ -11,7 +11,7 @@ object SharedKoin {
             modules(
                 module {
                     single<HttpClientEngine> { Js.create() }
-                }
+                },
             )
         }
     }

@@ -13,10 +13,12 @@ import kotlinx.coroutines.launch
 data class MerchantDetailsState(
     val merchant: MerchantResponse? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )
 
-class MerchantDetailsViewModel(private val repository: MerchantRepository) : ViewModel() {
+class MerchantDetailsViewModel(
+    private val repository: MerchantRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(MerchantDetailsState(isLoading = true))
     val uiState: StateFlow<MerchantDetailsState> = _uiState.asStateFlow()
 
@@ -30,14 +32,14 @@ class MerchantDetailsViewModel(private val repository: MerchantRepository) : Vie
                     it.copy(
                         merchant = merchant,
                         isLoading = false,
-                        error = if (merchant == null) "Merchant not found" else null
+                        error = if (merchant == null) "Merchant not found" else null,
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = e.message ?: "Unknown error"
+                        error = e.message ?: "Unknown error",
                     )
                 }
             }

@@ -5,8 +5,9 @@ import dev.valvassori.presentation.home.HomeViewModel
 import dev.valvassori.presentation.merchant.MerchantDetailsViewModel
 import org.koin.dsl.module
 
-val viewModelModule = module {
-    factory { HomeViewModel(get()) }
-    factory { MerchantDetailsViewModel(get()) }
-    factory { CartViewModel() }
-}
+val viewModelModule =
+    module {
+        factory { HomeViewModel(get()) }
+        factory { MerchantDetailsViewModel(get()) }
+        factory { CartViewModel() }
+    }

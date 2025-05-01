@@ -12,11 +12,11 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val isLoading: Boolean = false,
     val merchants: List<MerchantResponse> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
 )
 
 class HomeViewModel(
-    private val merchantRepository: MerchantRepository
+    private val merchantRepository: MerchantRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -29,15 +29,17 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 val merchants = merchantRepository.getAllMerchants()
-                _uiState.value = HomeUiState(
-                    isLoading = false,
-                    merchants = merchants.toList()
-                )
+                _uiState.value =
+                    HomeUiState(
+                        isLoading = false,
+                        merchants = merchants.toList(),
+                    )
             } catch (e: Exception) {
-                _uiState.value = HomeUiState(
-                    isLoading = false,
-                    error = e.message ?: "Unknown error occurred"
-                )
+                _uiState.value =
+                    HomeUiState(
+                        isLoading = false,
+                        error = e.message ?: "Unknown error occurred",
+                    )
             }
         }
     }

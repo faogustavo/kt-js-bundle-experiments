@@ -12,7 +12,8 @@ import org.koin.compose.KoinContext
 @Composable
 fun App() {
     setSingletonImageLoaderFactory { context ->
-        ImageLoader.Builder(context)
+        ImageLoader
+            .Builder(context)
             .logger(DebugLogger())
             .crossfade(true)
             .build()

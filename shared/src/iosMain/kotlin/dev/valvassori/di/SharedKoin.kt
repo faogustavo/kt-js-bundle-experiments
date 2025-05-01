@@ -13,7 +13,7 @@ object SharedKoin {
             modules(
                 module {
                     single<HttpClientEngine> { Darwin.create() }
-                }
+                },
             )
         }
     }

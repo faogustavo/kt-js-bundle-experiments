@@ -10,9 +10,8 @@ object SharedKoin {
             modules(
                 module {
                     single<HttpClientEngine> { Android.create() }
-                }
+                },
             )
         }
     }
 }
-

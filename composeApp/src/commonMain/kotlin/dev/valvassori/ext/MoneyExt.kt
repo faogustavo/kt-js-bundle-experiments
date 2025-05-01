@@ -8,4 +8,4 @@ fun Int.formatAsMoney(): String {
     val dollars = this / 100
     val cents = this % 100
     return "$$dollars.${cents.toString().padStart(2, '0')}"
-} 
+}

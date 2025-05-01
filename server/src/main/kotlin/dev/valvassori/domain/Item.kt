@@ -27,7 +27,7 @@ data class Item(
         enum class Type {
             Boolean,
             SingleSelection,
-            MultipleSelection;
+            MultipleSelection,
         }
 
         @Serializable

@@ -1,7 +1,6 @@
 package dev.valvassori.presentation.cart
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dev.valvassori.domain.ItemResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +14,7 @@ data class CartItem(
     val readableOptions: Map<String, Int>,
     val observation: String,
     val subtotal: Int,
-    val item: ItemResponse
+    val item: ItemResponse,
 )
 
 data class CartState(
@@ -28,11 +27,12 @@ data class CartState(
     val merchantName: String? = null,
     val merchantCategory: String? = null,
     val merchantDeliveryTime: Int? = null,
-    val error: String? = null
+    val error: String? = null,
 )
 
 sealed class CartError {
     object DifferentMerchant : CartError()
+
     object UnknownError : CartError()
 }
 
@@ -42,7 +42,7 @@ class CartViewModel : ViewModel() {
 
     private fun generateReadableOptions(
         item: ItemResponse,
-        selectedOptions: Map<ItemResponse.OptionResponse, Any?>
+        selectedOptions: Map<ItemResponse.OptionResponse, Any?>,
     ): Map<String, Int> {
         val readableOptions = mutableMapOf<String, Int>()
 
@@ -71,20 +71,21 @@ class CartViewModel : ViewModel() {
     private fun calculateSubtotal(
         item: ItemResponse,
         quantity: Int,
-        selectedOptions: Map<ItemResponse.OptionResponse, Any?>
+        selectedOptions: Map<ItemResponse.OptionResponse, Any?>,
     ): Int {
         val basePrice = item.price
-        val optionsPrice = selectedOptions.entries.sumOf { (option, value) ->
-            when (value) {
-                is ItemResponse.OptionResponse.EntryResponse -> value.price
-                is Set<*> -> {
-                    @Suppress("UNCHECKED_CAST")
-                    (value as Set<ItemResponse.OptionResponse.EntryResponse>).sumOf { it.price }
+        val optionsPrice =
+            selectedOptions.entries.sumOf { (option, value) ->
+                when (value) {
+                    is ItemResponse.OptionResponse.EntryResponse -> value.price
+                    is Set<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (value as Set<ItemResponse.OptionResponse.EntryResponse>).sumOf { it.price }
+                    }
+                    is Boolean -> if (value) option.price else 0
+                    else -> 0
                 }
-                is Boolean -> if (value) option.price else 0
-                else -> 0
             }
-        }
 
         return (basePrice + optionsPrice) * quantity
     }
@@ -110,17 +111,17 @@ class CartViewModel : ViewModel() {
         observation: String,
         merchantDeliveryFee: Int? = null,
         merchantCategory: String? = null,
-        merchantDeliveryTime: Int? = null
+        merchantDeliveryTime: Int? = null,
     ): CartError? {
         // Check if the cart is empty or from the same merchant
         if (_uiState.value.items.isEmpty()) {
             // Cart is empty, set the merchant ID and name
-            _uiState.update { 
+            _uiState.update {
                 it.copy(
                     merchantId = newMerchantId,
                     merchantName = newMerchantName,
                     merchantCategory = merchantCategory ?: it.merchantCategory,
-                    merchantDeliveryTime = merchantDeliveryTime ?: it.merchantDeliveryTime
+                    merchantDeliveryTime = merchantDeliveryTime ?: it.merchantDeliveryTime,
                 )
             }
         } else if (newMerchantId != _uiState.value.merchantId) {
@@ -132,15 +133,16 @@ class CartViewModel : ViewModel() {
         val subtotal = calculateSubtotal(item, quantity, selectedOptions)
 
         // Add the item to the cart
-        val newItem = CartItem(
-            id = System.currentTimeMillis(),
-            quantity = quantity,
-            selectedOptions = selectedOptions,
-            readableOptions = readableOptions,
-            observation = observation,
-            subtotal = subtotal,
-            item = item
-        )
+        val newItem =
+            CartItem(
+                id = System.currentTimeMillis(),
+                quantity = quantity,
+                selectedOptions = selectedOptions,
+                readableOptions = readableOptions,
+                observation = observation,
+                subtotal = subtotal,
+                item = item,
+            )
 
         _uiState.update { currentState ->
             val updatedItems = currentState.items + newItem
@@ -152,7 +154,7 @@ class CartViewModel : ViewModel() {
                 totalItems = totalItems,
                 totalPrice = totalPrice,
                 merchantDeliveryFee = merchantDeliveryFee ?: currentState.merchantDeliveryFee,
-                isOpen = true // Open the cart when an item is added
+                isOpen = true, // Open the cart when an item is added
             )
         }
 
@@ -168,7 +170,7 @@ class CartViewModel : ViewModel() {
             currentState.copy(
                 items = updatedItems,
                 totalItems = totalItems,
-                totalPrice = totalPrice
+                totalPrice = totalPrice,
             )
         }
     }
@@ -177,7 +179,7 @@ class CartViewModel : ViewModel() {
         itemId: Long,
         quantity: Int,
         selectedOptions: Map<ItemResponse.OptionResponse, Any?>,
-        observation: String
+        observation: String,
     ) {
         if (quantity <= 0) {
             removeItem(itemId)
@@ -185,22 +187,23 @@ class CartViewModel : ViewModel() {
         }
 
         _uiState.update { currentState ->
-            val updatedItems = currentState.items.map { cartItem ->
-                if (cartItem.id == itemId) {
-                    val readableOptions = generateReadableOptions(cartItem.item, selectedOptions)
-                    val subtotal = calculateSubtotal(cartItem.item, quantity, selectedOptions)
+            val updatedItems =
+                currentState.items.map { cartItem ->
+                    if (cartItem.id == itemId) {
+                        val readableOptions = generateReadableOptions(cartItem.item, selectedOptions)
+                        val subtotal = calculateSubtotal(cartItem.item, quantity, selectedOptions)
 
-                    cartItem.copy(
-                        quantity = quantity,
-                        selectedOptions = selectedOptions,
-                        readableOptions = readableOptions,
-                        observation = observation,
-                        subtotal = subtotal
-                    )
-                } else {
-                    cartItem
+                        cartItem.copy(
+                            quantity = quantity,
+                            selectedOptions = selectedOptions,
+                            readableOptions = readableOptions,
+                            observation = observation,
+                            subtotal = subtotal,
+                        )
+                    } else {
+                        cartItem
+                    }
                 }
-            }
 
             val totalItems = updatedItems.sumOf { it.quantity }
             val totalPrice = updatedItems.sumOf { it.subtotal }
@@ -208,7 +211,7 @@ class CartViewModel : ViewModel() {
             currentState.copy(
                 items = updatedItems,
                 totalItems = totalItems,
-                totalPrice = totalPrice
+                totalPrice = totalPrice,
             )
         }
     }
@@ -218,4 +221,4 @@ class CartViewModel : ViewModel() {
             CartState()
         }
     }
-} 
+}

@@ -30,7 +30,7 @@ class ItemResponse(
         enum class TypeResponse {
             Boolean,
             SingleSelection,
-            MultipleSelection;
+            MultipleSelection,
         }
 
         @Serializable

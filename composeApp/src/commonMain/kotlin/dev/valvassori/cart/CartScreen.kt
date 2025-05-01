@@ -59,7 +59,7 @@ fun CartScreen(
                     onClick = {
                         viewModel.clearCart()
                         showClearCartDialog = false
-                    }
+                    },
                 ) {
                     Text("Yes, Clear All")
                 }
@@ -68,7 +68,7 @@ fun CartScreen(
                 TextButton(onClick = { showClearCartDialog = false }) {
                     Text("Cancel")
                 }
-            }
+            },
         )
     }
 
@@ -80,7 +80,7 @@ fun CartScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
                 },
@@ -89,71 +89,74 @@ fun CartScreen(
                         IconButton(onClick = { showClearCartDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear Cart"
+                                contentDescription = "Clear Cart",
                             )
                         }
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            contentAlignment = Alignment.Center,
         ) {
             if (cartState.items.isEmpty()) {
                 // Empty cart state
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
                         text = "Your cart is empty",
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineMedium,
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Add items to get started",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
             } else {
                 // Cart with items
                 Column(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(16.dp)
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .padding(16.dp),
                     ) {
                         // Merchant information
                         item {
                             Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp),
                             ) {
                                 Column(
-                                    modifier = Modifier.padding(16.dp)
+                                    modifier = Modifier.padding(16.dp),
                                 ) {
                                     Text(
                                         text = cartState.merchantName ?: "Restaurant",
-                                        style = MaterialTheme.typography.titleLarge
+                                        style = MaterialTheme.typography.titleLarge,
                                     )
                                     if (cartState.merchantCategory != null) {
                                         Text(
                                             text = cartState.merchantCategory!!,
-                                            style = MaterialTheme.typography.bodyMedium
+                                            style = MaterialTheme.typography.bodyMedium,
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Text("Delivery Fee:")
                                         Text("$${cartState.merchantDeliveryFee / 100.0}")
@@ -161,7 +164,7 @@ fun CartScreen(
                                     if (cartState.merchantDeliveryTime != null) {
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
+                                            horizontalArrangement = Arrangement.SpaceBetween,
                                         ) {
                                             Text("Delivery Time:")
                                             Text("${cartState.merchantDeliveryTime} min")
@@ -181,9 +184,9 @@ fun CartScreen(
                                         cartItem.id,
                                         newQuantity,
                                         cartItem.selectedOptions,
-                                        cartItem.observation
+                                        cartItem.observation,
                                     )
-                                }
+                                },
                             )
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
                         }
@@ -191,29 +194,30 @@ fun CartScreen(
                         // Order summary
                         item {
                             Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 16.dp),
                             ) {
                                 Column(
-                                    modifier = Modifier.padding(16.dp)
+                                    modifier = Modifier.padding(16.dp),
                                 ) {
                                     Text(
                                         text = "Order Summary",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Text("Subtotal:")
                                         Text("$${cartState.totalPrice / 100.0}")
                                     }
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Text("Delivery Fee:")
                                         Text("$${cartState.merchantDeliveryFee / 100.0}")
@@ -221,15 +225,15 @@ fun CartScreen(
                                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Text(
                                             text = "Total:",
-                                            fontWeight = FontWeight.Bold
+                                            fontWeight = FontWeight.Bold,
                                         )
                                         Text(
                                             text = "$${(cartState.totalPrice + cartState.merchantDeliveryFee) / 100.0}",
-                                            fontWeight = FontWeight.Bold
+                                            fontWeight = FontWeight.Bold,
                                         )
                                     }
                                 }
@@ -240,13 +244,14 @@ fun CartScreen(
                     // Checkout button
                     Button(
                         onClick = onCheckout,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                     ) {
                         Text(
                             text = "Checkout • $${(cartState.totalPrice + cartState.merchantDeliveryFee) / 100.0}",
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -259,20 +264,21 @@ fun CartScreen(
 fun CartItemRow(
     cartItem: CartItem,
     onRemove: () -> Unit,
-    onUpdateQuantity: (Int) -> Unit
+    onUpdateQuantity: (Int) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = cartItem.item.name,
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
 
             // Display selected options
@@ -280,16 +286,16 @@ fun CartItemRow(
                 cartItem.readableOptions.forEach { (name, price) ->
                     Row(
                         modifier = Modifier.padding(start = 16.dp, top = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
                             text = "• $name",
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
                         )
                         if (price > 0) {
                             Text(
                                 text = "+$${price / 100.0}",
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
                     }
@@ -301,13 +307,13 @@ fun CartItemRow(
                 Text(
                     text = "Note: ${cartItem.observation}",
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp),
                 )
             }
         }
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Quantity control
             IconButton(onClick = { onUpdateQuantity(cartItem.quantity - 1) }) {
@@ -315,7 +321,7 @@ fun CartItemRow(
             }
             Text(
                 text = "${cartItem.quantity}",
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
             IconButton(onClick = { onUpdateQuantity(cartItem.quantity + 1) }) {
                 Text("+")
@@ -326,7 +332,7 @@ fun CartItemRow(
                 text = "$${cartItem.subtotal / 100.0}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }
