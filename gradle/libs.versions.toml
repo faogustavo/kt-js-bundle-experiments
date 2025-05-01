@@ -10,7 +10,9 @@ androidx-core-ktx = "1.15.0"
 androidx-espresso-core = "3.6.1"
 androidx-lifecycle = "2.8.4"
 androidx-material = "1.12.0"
+androidx-navigation-compose = "2.9.0-alpha14"
 androidx-test-junit = "1.2.1"
+coil = "3.1.0"
 compose-multiplatform = "1.7.3"
 junit = "4.13.2"
 koin = "4.0.4"
@@ -61,6 +63,13 @@ koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-view
 
 # SKIE
 touchlab-skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "touchlab-skie" }
+
+# AndroidX Navigation Compose
+androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation-compose" }
+
+# Coil
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

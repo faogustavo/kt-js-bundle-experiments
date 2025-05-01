@@ -5,25 +5,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import dev.valvassori.cart.CartScreen
 import dev.valvassori.home.HomeScreen
 import dev.valvassori.merchant.MenuItemScreen
 import dev.valvassori.merchant.MerchantDetailsScreen
 import dev.valvassori.presentation.cart.CartViewModel
 import org.koin.compose.viewmodel.koinViewModel
-
-sealed class Screen(val route: String) {
-    object Home : Screen("home")
-    object MerchantDetails : Screen("merchant/{merchantId}") {
-        fun createRoute(merchantId: String) = "merchant/$merchantId"
-    }
-
-    object MenuItemDetail : Screen("merchant/{merchantId}/menu-item/{itemId}") {
-        fun createRoute(merchantId: String, itemId: String) = "merchant/$merchantId/menu-item/$itemId"
-    }
-
-    object Cart : Screen("cart")
-}
 
 @Composable
 fun NavGraph(
@@ -34,30 +22,30 @@ fun NavGraph(
 
     // Define a navigation function for cart
     val navigateToCart: () -> Unit = {
-        navController.navigate(Screen.Cart.route)
+        navController.navigate(Cart)
     }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = Home
     ) {
-        composable(Screen.Home.route) {
+        composable<Home> {
             HomeScreen(
                 onMerchantClick = { merchantId ->
-                    navController.navigate(Screen.MerchantDetails.createRoute(merchantId))
+                    navController.navigate(MerchantDetails(merchantId))
                 },
                 onNavigateToCart = navigateToCart,
                 cartViewModel = cartViewModel
             )
         }
 
-        composable(Screen.MerchantDetails.route) { backStackEntry ->
-            val merchantId = backStackEntry.arguments?.getString("merchantId") ?: return@composable
+        composable<MerchantDetails> { backStackEntry ->
+            val route: MerchantDetails = backStackEntry.toRoute()
             MerchantDetailsScreen(
-                merchantId = merchantId,
+                merchantId = route.merchantId,
                 onBackClick = { navController.popBackStack() },
                 onMenuItemClick = { item ->
-                    navController.navigate(Screen.MenuItemDetail.createRoute(merchantId, item.id))
+                    navController.navigate(MenuItemDetail(route.merchantId, item.id))
                 },
                 onNavigateToCart = navigateToCart,
                 viewModel = koinViewModel(),
@@ -65,13 +53,12 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.MenuItemDetail.route) { backStackEntry ->
-            val merchantId = backStackEntry.arguments?.getString("merchantId") ?: return@composable
-            val itemId = backStackEntry.arguments?.getString("itemId") ?: return@composable
-
+        composable<MenuItemDetail> { backStackEntry ->
+            val route: MenuItemDetail = backStackEntry.toRoute()
+            
             MenuItemScreen(
-                merchantId = merchantId,
-                itemId = itemId,
+                merchantId = route.merchantId,
+                itemId = route.itemId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCart = navigateToCart,
                 viewModel = koinViewModel(),
@@ -79,12 +66,12 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Cart.route) {
+        composable<Cart> {
             CartScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onCheckout = {
                     // TODO: Navigate to checkout screen when implemented
-                    navController.popBackStack(Screen.Home.route, false)
+                    navController.popBackStack(Home, false)
                 },
                 viewModel = cartViewModel
             )
