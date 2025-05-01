@@ -2,6 +2,7 @@ package dev.valvassori.di
 
 import dev.valvassori.di.modules.apiModule
 import dev.valvassori.di.modules.repositoryModule
+import dev.valvassori.di.modules.viewModelModule
 import org.koin.core.KoinApplication
 import org.koin.core.context.startKoin
 import org.koin.core.qualifier.named
@@ -27,6 +28,7 @@ internal fun initKoin(
             },
             apiModule,
             repositoryModule,
+            viewModelModule,
         )
     }
 }

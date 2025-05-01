@@ -32,7 +32,7 @@ object ApiClient {
 
             // Install logging for debugging
             install(Logging) {
-                level = LogLevel.INFO
+                level = LogLevel.ALL
             }
         }
     }

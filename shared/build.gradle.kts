@@ -68,6 +68,9 @@ kotlin {
 
             // SKIE annotations
             implementation(libs.touchlab.skie.annotations)
+
+            // ViewModel dependencies
+            implementation(libs.androidx.lifecycle.viewmodel)
         }
 
         androidMain.dependencies {
