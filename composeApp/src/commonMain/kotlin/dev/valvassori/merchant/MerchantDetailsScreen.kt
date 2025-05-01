@@ -33,9 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,12 +40,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import dev.valvassori.cart.CartFab
 import dev.valvassori.domain.ItemResponse
 import dev.valvassori.domain.MerchantResponse
 import dev.valvassori.ext.formatAsMoney
+import dev.valvassori.presentation.cart.CartViewModel
 import dev.valvassori.presentation.merchant.MerchantDetailsViewModel
-import org.koin.compose.koinInject
-import kotlin.math.floor
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,13 +54,16 @@ fun MerchantDetailsScreen(
     merchantId: String,
     onBackClick: () -> Unit,
     onMenuItemClick: (ItemResponse) -> Unit,
-    viewModel: MerchantDetailsViewModel = koinInject()
+    onNavigateToCart: () -> Unit,
+    viewModel: MerchantDetailsViewModel,
+    cartViewModel: CartViewModel = koinViewModel()
 ) {
     LaunchedEffect(merchantId) {
         viewModel.loadMerchant(merchantId)
     }
     
     val uiState by viewModel.uiState.collectAsState()
+    val cartState by cartViewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -77,6 +78,12 @@ fun MerchantDetailsScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            CartFab(
+                itemCount = cartState.totalItems,
+                onClick = onNavigateToCart
+            )
         }
     ) { paddingValues ->
         Box(
@@ -89,6 +96,7 @@ fun MerchantDetailsScreen(
                 uiState.isLoading -> {
                     CircularProgressIndicator()
                 }
+
                 uiState.error != null -> {
                     Column(
                         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -107,6 +115,7 @@ fun MerchantDetailsScreen(
                         )
                     }
                 }
+
                 uiState.merchant == null -> {
                     Column(
                         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -120,6 +129,7 @@ fun MerchantDetailsScreen(
                         )
                     }
                 }
+
                 else -> {
                     MerchantDetails(
                         merchant = uiState.merchant!!,
@@ -154,7 +164,7 @@ private fun MerchantDetails(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                
+
                 // Closed tag if restaurant is closed
                 if (!merchant.isOpen) {
                     Box(
@@ -192,7 +202,7 @@ private fun MerchantDetails(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -212,7 +222,7 @@ private fun MerchantDetails(
                         )
                     }
                 }
-                
+
                 // Restaurant Category
                 Text(
                     text = merchant.category,
@@ -220,7 +230,7 @@ private fun MerchantDetails(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
                 )
-                
+
                 // Delivery Information
                 Row(
                     modifier = Modifier.padding(bottom = 4.dp),
@@ -247,13 +257,13 @@ private fun MerchantDetails(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = if (merchant.deliveryFee == 0) "Free Delivery" 
-                               else "Delivery ${merchant.deliveryFee.formatAsMoney()}",
+                        text = if (merchant.deliveryFee == 0) "Free Delivery"
+                        else "Delivery ${merchant.deliveryFee.formatAsMoney()}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 // Minimum Order
                 if (merchant.minimumOrder > 0) {
                     Row(
@@ -272,7 +282,7 @@ private fun MerchantDetails(
                         )
                     }
                 }
-                
+
                 // Address Section
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -295,7 +305,7 @@ private fun MerchantDetails(
                     text = "${merchant.address.city}, ${merchant.address.state} ${merchant.address.zip}",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                
+
                 // Contact Section
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -310,7 +320,7 @@ private fun MerchantDetails(
                 )
             }
         }
-        
+
         // Menu Section Header
         item {
             Text(
@@ -321,7 +331,7 @@ private fun MerchantDetails(
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-        
+
         // Menu Categories
         merchant.menu.forEach { category ->
             item {
@@ -331,7 +341,7 @@ private fun MerchantDetails(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
-                
+
                 category.description?.let {
                     Text(
                         text = it,
@@ -341,7 +351,7 @@ private fun MerchantDetails(
                     )
                 }
             }
-            
+
             items(category.items) { item ->
                 MenuItem(
                     item = item,
@@ -349,12 +359,12 @@ private fun MerchantDetails(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
             }
-            
+
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
+
         // Add some space at the bottom
         item {
             Spacer(modifier = Modifier.height(24.dp))
@@ -371,8 +381,8 @@ private fun MenuItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .let { 
-                if (item.isAvailable) it.clickable { onClick(item) } else it 
+            .let {
+                if (item.isAvailable) it.clickable { onClick(item) } else it
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
@@ -398,7 +408,7 @@ private fun MenuItem(
                     contentScale = ContentScale.Crop
                 )
             }
-            
+
             // Item Details
             Column(
                 modifier = Modifier
@@ -419,14 +429,14 @@ private fun MenuItem(
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                
+
                 Text(
                     text = item.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
                 )
-                
+
                 if (!item.isAvailable) {
                     Text(
                         text = "Currently unavailable",

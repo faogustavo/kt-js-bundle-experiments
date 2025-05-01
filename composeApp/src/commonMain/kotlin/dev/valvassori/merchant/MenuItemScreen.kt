@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,6 +30,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -37,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,11 +50,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import dev.valvassori.cart.CartFab
 import dev.valvassori.domain.ItemResponse
 import dev.valvassori.ext.formatAsMoney
+import dev.valvassori.presentation.cart.CartError
+import dev.valvassori.presentation.cart.CartViewModel
 import dev.valvassori.presentation.merchant.MerchantDetailsViewModel
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +68,9 @@ fun MenuItemScreen(
     merchantId: String,
     itemId: String,
     onNavigateBack: () -> Unit,
-    viewModel: MerchantDetailsViewModel = koinInject()
+    onNavigateToCart: () -> Unit,
+    viewModel: MerchantDetailsViewModel,
+    cartViewModel: CartViewModel
 ) {
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -65,10 +79,15 @@ fun MenuItemScreen(
     var merchantDeliveryFee by remember { mutableStateOf(0) }
     var merchantCategory by remember { mutableStateOf("") }
     var merchantDeliveryTime by remember { mutableStateOf(0) }
+    var observation by remember { mutableStateOf("") }
 
     var quantity by remember { mutableIntStateOf(1) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     val uiState by viewModel.uiState.collectAsState()
+    val cartState by cartViewModel.uiState.collectAsState()
 
     LaunchedEffect(merchantId, itemId) {
         viewModel.loadMerchant(merchantId)
@@ -148,6 +167,113 @@ fun MenuItemScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            CartFab(
+                itemCount = cartState.totalItems,
+                onClick = onNavigateToCart
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            if (item != null) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = 8.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            IconButton(
+                                onClick = { if (quantity > 1) quantity-- },
+                                enabled = quantity > 1
+                            ) {
+                                RemoveIcon()
+                            }
+
+                            Text(
+                                text = quantity.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+
+                            IconButton(
+                                onClick = { quantity++ }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Increase quantity"
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = {
+                                val result = cartViewModel.addItem(
+                                    item = item!!,
+                                    newMerchantId = merchantId,
+                                    newMerchantName = merchantName,
+                                    quantity = quantity,
+                                    selectedOptions = selectedOptions.value,
+                                    observation = observation,
+                                    merchantDeliveryFee = merchantDeliveryFee,
+                                    merchantCategory = merchantCategory,
+                                    merchantDeliveryTime = merchantDeliveryTime
+                                )
+
+                                when (result) {
+                                    CartError.DifferentMerchant -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Cannot add items from different merchants"
+                                            )
+                                        }
+                                    }
+                                    CartError.UnknownError -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "An error occurred while adding to cart"
+                                            )
+                                        }
+                                    }
+                                    null -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                "Item added to cart"
+                                            )
+                                        }
+                                        onNavigateBack()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = totalPrice.formatAsMoney(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                                Text(
+                                    text = "Add",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Box(
@@ -321,90 +447,9 @@ fun MenuItemScreen(
                             }
                         }
 
-                        // Quantity selector
+                        // Add some padding at the bottom to avoid content being hidden by the bottom bar
                         item {
-                            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Quantity",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        IconButton(
-                                            onClick = { if (quantity > 1) quantity-- },
-                                            enabled = quantity > 1
-                                        ) {
-                                            RemoveIcon()
-                                        }
-
-                                        Text(
-                                            text = quantity.toString(),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.padding(horizontal = 8.dp)
-                                        )
-
-                                        IconButton(
-                                            onClick = { quantity++ }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Add,
-                                                contentDescription = "Increase quantity"
-                                            )
-                                        }
-                                    }
-                                }
-
-                                Divider(modifier = Modifier.padding(bottom = 16.dp))
-                            }
-                        }
-
-                        // Footer with add to cart button
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Total",
-                                        style = MaterialTheme.typography.titleLarge
-                                    )
-                                    Text(
-                                        text = totalPrice.formatAsMoney(),
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Button(
-                                    onClick = {
-                                        // TODO: Add to cart functionality
-                                        onNavigateBack()
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = "Add to Cart",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                            }
+                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
                 }
@@ -424,7 +469,8 @@ private fun OptionItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clip(MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.small),
+        onClick = onSelect
     ) {
         Row(
             modifier = Modifier
@@ -434,7 +480,7 @@ private fun OptionItem(
         ) {
             RadioButton(
                 selected = isSelected,
-                onClick = onSelect
+                onClick = null // Remove onClick here since the entire card is now clickable
             )
 
             Column(
