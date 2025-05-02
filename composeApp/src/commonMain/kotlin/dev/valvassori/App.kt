@@ -1,6 +1,7 @@
 package dev.valvassori
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory

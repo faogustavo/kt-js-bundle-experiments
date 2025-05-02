@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.Clock
 
 data class CartItem(
     val id: Long,
@@ -135,7 +136,7 @@ class CartViewModel : ViewModel() {
         // Add the item to the cart
         val newItem =
             CartItem(
-                id = System.currentTimeMillis(),
+                id = Clock.System.now().toEpochMilliseconds(),
                 quantity = quantity,
                 selectedOptions = selectedOptions,
                 readableOptions = readableOptions,

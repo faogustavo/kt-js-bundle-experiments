@@ -61,6 +61,9 @@ kotlin {
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
+            
+            // DateTime
+            implementation(libs.kotlinx.datetime)
 
             // Koin dependency injection
             implementation(libs.koin.core)

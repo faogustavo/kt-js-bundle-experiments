@@ -9,7 +9,7 @@ import org.koin.dsl.module
 object SharedKoin {
     @DefaultArgumentInterop.Enabled
     fun initKoin(baseApiUrl: String = "http://localhost:8080") {
-        initKoin {
+        initKoin(baseApiUrl) {
             modules(
                 module {
                     single<HttpClientEngine> { Darwin.create() }
