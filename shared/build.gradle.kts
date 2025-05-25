@@ -22,7 +22,7 @@ kotlin {
     jvm()
 
     js(IR) {
-        moduleName = "kt-js-experiment"
+        outputModuleName = "kt-js-experiment"
 
         nodejs {
             compilations.all {
@@ -40,7 +40,7 @@ kotlin {
         useEsModules()
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            target.set("es2015")
+//            target.set("es2015")
         }
     }
 
@@ -61,7 +61,7 @@ kotlin {
 
             // Coroutines
             implementation(libs.kotlinx.coroutines.core)
-            
+
             // DateTime
             implementation(libs.kotlinx.datetime)
 
