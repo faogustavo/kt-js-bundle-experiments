@@ -1,291 +1,397 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ItemResponse } from 'kt-js-experiment';
-import { Dialog } from '@headlessui/react';
-import Image from 'next/image';
-import { XMarkIcon, PlusIcon, MinusIcon } from '@heroicons/react/24/outline';
+import { CartError, useCart } from '@/context/CartContext';
 
 interface MenuItemPopupProps {
   item: ItemResponse;
+  cartItemId?: number;
   merchantId: string;
   merchantName: string;
   merchantDeliveryFee: number;
-  merchantCategory: string;
-  merchantDeliveryTime: number;
+  merchantCategory?: string;
+  merchantDeliveryTime?: number;
+  initialQuantity?: number;
+  initialOptions?: Record<string, boolean | string | string[] | null>;
+  initialObservation?: string;
+  isEdit?: boolean;
   onDismiss: () => void;
 }
 
+interface ItemOptionsProps {
+  item: ItemResponse;
+  selectedOptions: Record<string, boolean | string | string[] | null>;
+  handleOptionChange: (optionId: string, value: boolean | string | string[] | null) => void;
+}
+
+interface BooleanOptionProps {
+  option: ItemResponse.OptionResponse;
+  selected: boolean;
+  handleChange: (value: boolean) => void;
+}
+
+interface SingleSelectionOptionProps {
+  option: ItemResponse.OptionResponse;
+  selected: string | null;
+  handleChange: (value: string) => void;
+}
+
+interface MultipleSelectionOptionProps {
+  option: ItemResponse.OptionResponse;
+  selected: string[];
+  handleChange: (value: string[]) => void;
+}
+
+const BooleanOption: React.FC<BooleanOptionProps> = ({ option, selected, handleChange }) => (
+  <div className="flex items-center">
+    <input
+      type="checkbox"
+      id={ `option-${ option.id }` }
+      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+      checked={ selected }
+      onChange={ (e) => handleChange(e.target.checked) }
+      disabled={ !option.isAvailable }
+    />
+    <label htmlFor={ `option-${ option.id }` } className="ml-2 text-sm">
+      { option.isAvailable ? 'Add this option' : 'Currently unavailable' }
+    </label>
+  </div>
+);
+
+const SingleSelectionOption: React.FC<SingleSelectionOptionProps> = ({ option, selected, handleChange }) => (
+  <div className="space-y-2">
+    { option.options.map((entry) => (
+      <div key={ entry.id } className="flex items-center justify-between">
+        <div className="flex items-center">
+          <input
+            type="radio"
+            id={ `option-${ option.id }-${ entry.id }` }
+            name={ `option-${ option.id }` }
+            className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            checked={ selected === entry.id.toString() }
+            onChange={ () => handleChange(entry.id.toString()) }
+            disabled={ !option.isAvailable }
+          />
+          <label htmlFor={ `option-${ option.id }-${ entry.id }` } className="ml-2 text-sm">
+            { entry.name }
+            { entry.description && <span className="text-xs text-gray-500 ml-1">({ entry.description })</span> }
+          </label>
+        </div>
+        { entry.price > 0 && <span className="text-sm">{ formatPrice(entry.price) }</span> }
+      </div>
+    )) }
+  </div>
+);
+
+const MultipleSelectionOption: React.FC<MultipleSelectionOptionProps> = ({ option, selected, handleChange }) => (
+  <div className="space-y-2">
+    { option.options.map((entry) => (
+      <div key={ entry.id } className="flex items-center justify-between">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id={ `option-${ option.id }-${ entry.id }` }
+            className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+            checked={ selected.includes(entry.id.toString()) }
+            onChange={ (e) => {
+              const currentSelections = [...selected];
+              if (e.target.checked) {
+                handleChange([...currentSelections, entry.id.toString()]);
+              } else {
+                handleChange(currentSelections.filter((id) => id !== entry.id.toString()));
+              }
+            } }
+            disabled={ !option.isAvailable }
+          />
+          <label htmlFor={ `option-${ option.id }-${ entry.id }` } className="ml-2 text-sm">
+            { entry.name }
+            { entry.description && <span className="text-xs text-gray-500 ml-1">({ entry.description })</span> }
+          </label>
+        </div>
+        { entry.price > 0 && <span className="text-sm">{ formatPrice(entry.price) }</span> }
+      </div>
+    )) }
+  </div>
+);
+
+const ItemOptions: React.FC<ItemOptionsProps> = ({ item, selectedOptions, handleOptionChange }) => {
+  return (
+    <div className="mb-6">
+      <h4 className="font-semibold mb-2">Options</h4>
+      <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+        { item.options.map((option) => (
+          <div key={ option.id } className="border-b pb-3">
+            <div className="flex justify-between mb-1">
+              <span className="font-medium">{ option.name }</span>
+              { option.price > 0 && <span>{ formatPrice(option.price) }</span> }
+            </div>
+            { option.description && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{ option.description }</p>
+            ) }
+
+            { option.type === ItemResponse.OptionResponse.TypeResponse.Boolean && (
+              <BooleanOption
+                option={ option }
+                selected={ !!selectedOptions[option.id] }
+                handleChange={ (value) => handleOptionChange(option.id.toString(), value) }
+              />
+            ) }
+
+            { option.type === ItemResponse.OptionResponse.TypeResponse.SingleSelection && (
+              <SingleSelectionOption
+                option={ option }
+                selected={ selectedOptions[option.id] as string | null }
+                handleChange={ (value) => handleOptionChange(option.id.toString(), value) }
+              />
+            ) }
+
+            { option.type === ItemResponse.OptionResponse.TypeResponse.MultipleSelection && (
+              <MultipleSelectionOption
+                option={ option }
+                selected={ Array.isArray(selectedOptions[option.id]) ? (selectedOptions[option.id] as string[]) : [] }
+                handleChange={ (value) => handleOptionChange(option.id.toString(), value) }
+              />
+            ) }
+          </div>
+        )) }
+      </div>
+    </div>
+  );
+};
+
 // Helper function to format price from cents to dollars
 const formatPrice = (price: number): string => {
-  return `$${(price / 100).toFixed(2)}`;
+  return `$${ (price / 100).toFixed(2) }`;
 };
 
 const MenuItemPopup: React.FC<MenuItemPopupProps> = ({
-  item,
-  merchantId,
-  merchantName,
-  merchantDeliveryFee,
-  merchantCategory,
-  merchantDeliveryTime,
-  onDismiss
-}) => {
-  const [quantity, setQuantity] = useState(1);
-  
-  // Track selected options for each option group
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, any>>(() => {
-    const initialOptions: Record<string, any> = {};
-    
-    item.options.forEach(option => {
-      switch (option.type) {
-        case 'Boolean':
-          initialOptions[option.id] = null;
-          break;
-        case 'SingleSelection':
-          // Default to first option with price 0 if available
-          initialOptions[option.id] = option.options.find(entry => entry.price === 0) || null;
-          break;
-        case 'MultipleSelection':
-          initialOptions[option.id] = new Set();
-          break;
+                                                       item,
+                                                       cartItemId,
+                                                       merchantId,
+                                                       merchantName,
+                                                       merchantDeliveryFee,
+                                                       merchantCategory,
+                                                       merchantDeliveryTime,
+                                                       initialQuantity = 1,
+                                                       initialOptions = {},
+                                                       initialObservation = '',
+                                                       isEdit = false,
+                                                       onDismiss,
+                                                     }) => {
+  const [quantity, setQuantity] = useState(initialQuantity);
+  const [totalPrice, setTotalPrice] = useState(item.price);
+  // Define a type for the selected options
+  type OptionValue = boolean | string | string[] | null;
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, OptionValue>>(initialOptions);
+  const [observation, setObservation] = useState(initialObservation); // New state for observation
+  const [error, setError] = useState<CartError>(null); // New state for error
+
+  const { addItem, updateItem, openCart } = useCart();
+
+  // Calculate total price including selected options
+  useEffect(() => {
+    let optionsPrice = 0;
+
+    // Calculate the price of selected options
+    Object.entries(selectedOptions).forEach(([optionId, selection]) => {
+      const option = item.options.find(opt => opt.id.toString() === optionId);
+      if (!option) {
+        return;
       }
-    });
-    
-    return initialOptions;
-  });
-  
-  // Calculate total price based on item price, options, and quantity
-  const calculateTotalPrice = (): number => {
-    let price = item.price;
-    
-    // Add option prices
-    Object.keys(selectedOptions).forEach(optionId => {
-      const selection = selectedOptions[optionId];
-      
-      if (!selection) return;
-      
-      if (selection instanceof Set) {
-        // Handle set of multiple selections
-        selection.forEach((entry: ItemResponse.OptionResponse.EntryResponse) => {
-          price += entry.price;
-        });
-      } else {
-        // Handle single selection
-        price += selection.price;
-      }
-    });
-    
-    // Multiply by quantity
-    return price * quantity;
-  };
-  
-  const totalPrice = calculateTotalPrice();
-  
-  // Handle option selection/deselection
-  const handleOptionChange = (
-    option: ItemResponse.OptionResponse,
-    entry: ItemResponse.OptionResponse.EntryResponse
-  ) => {
-    switch (option.type) {
-      case 'Boolean':
-        setSelectedOptions({
-          ...selectedOptions,
-          [option.id]: selectedOptions[option.id] === entry ? null : entry
-        });
-        break;
-        
-      case 'SingleSelection':
-        setSelectedOptions({
-          ...selectedOptions,
-          [option.id]: entry
-        });
-        break;
-        
-      case 'MultipleSelection':
-        const currentSet = selectedOptions[option.id] as Set<ItemResponse.OptionResponse.EntryResponse>;
-        const newSet = new Set(currentSet);
-        
-        if (currentSet.has(entry)) {
-          newSet.delete(entry);
-        } else {
-          newSet.add(entry);
+
+      if (option.type === ItemResponse.OptionResponse.TypeResponse.Boolean && selection === true) {
+        optionsPrice += option.price;
+      } else if (option.type === ItemResponse.OptionResponse.TypeResponse.SingleSelection && selection !== null) {
+        const selectedEntry = option.options.find(entry => entry.id.toString() === selection);
+        if (selectedEntry) {
+          optionsPrice += selectedEntry.price;
         }
-        
-        setSelectedOptions({
-          ...selectedOptions,
-          [option.id]: newSet
+      } else if (option.type === ItemResponse.OptionResponse.TypeResponse.MultipleSelection && Array.isArray(selection)) {
+        selection?.forEach(entryId => {
+          const selectedEntry = option.options.find(entry => entry.id.toString() === entryId);
+          if (selectedEntry) {
+            optionsPrice += selectedEntry.price;
+          }
         });
-        break;
+      }
+    });
+
+    setTotalPrice(item.price + optionsPrice);
+  }, [item, selectedOptions]);
+
+  const handleIncrement = () => {
+    setQuantity(prev => prev + 1);
+  };
+
+  const handleDecrement = () => {
+    if (quantity > (isEdit ? 0 : 1)) {
+      setQuantity(prev => prev - 1);
     }
   };
-  
-  const isSelected = (
-    option: ItemResponse.OptionResponse,
-    entry: ItemResponse.OptionResponse.EntryResponse
-  ): boolean => {
-    const selection = selectedOptions[option.id];
-    
-    if (!selection) return false;
-    
-    if (selection instanceof Set) {
-      return selection.has(entry);
-    }
-    
-    return selection.id === entry.id;
+
+  const handleOptionChange = (optionId: string, value: OptionValue) => {
+    setSelectedOptions(prev => ({
+      ...prev,
+      [optionId]: value,
+    }));
   };
-  
+
+  const handleConfirm = () => {
+    if (cartItemId) {
+      setError(null); // Clear any previous error
+      updateItem(cartItemId, quantity, selectedOptions, observation);
+      onDismiss();
+      return;
+    }
+
+    const result = addItem(
+      item,
+      merchantId,
+      merchantName,
+      quantity,
+      selectedOptions,
+      observation,
+      merchantDeliveryFee,
+      merchantCategory,
+      merchantDeliveryTime,
+    );
+
+    if (result) {
+      setError(result); // Store the error
+    } else {
+      setError(null); // Clear any previous error
+      onDismiss();
+      openCart();
+    }
+  };
+
   return (
-    <Dialog
-      open={true}
-      onClose={onDismiss}
-      className="relative z-50"
-    >
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
-      <div className="fixed inset-0 flex items-end justify-center sm:items-center p-4">
-        <Dialog.Panel className="mx-auto max-w-xl w-full rounded-t-lg sm:rounded-lg bg-white p-4 max-h-[85vh] overflow-auto flex flex-col">
-          {/* Header with close button */}
-          <div className="relative">
-            <div className="aspect-video w-full rounded-lg overflow-hidden relative">
-              <Image
-                src={item.imageUrl}
-                alt={item.name}
-                fill
-                style={{ objectFit: 'cover' }}
-                className="rounded-lg"
-              />
-              
-              <button
-                onClick={onDismiss}
-                className="absolute top-2 right-2 p-1 rounded-full bg-white/70 hover:bg-white"
-              >
-                <XMarkIcon className="h-6 w-6 text-gray-800" />
-              </button>
-            </div>
-            
-            <div className="mt-4">
-              <h2 className="text-2xl font-bold">{item.name}</h2>
-              <p className="text-gray-600 my-2">{item.description}</p>
-              <p className="text-xl font-semibold">{formatPrice(item.price)}</p>
-            </div>
-          </div>
-          
-          <div className="mt-4 border-t border-gray-200 pt-4 flex-1 overflow-auto">
-            {/* Options */}
-            {item.options.map(option => (
-              <div key={option.id} className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">{option.name}</h3>
-                {option.description && (
-                  <p className="text-gray-600 text-sm mb-3">{option.description}</p>
-                )}
-                
-                <div className="space-y-2">
-                  {option.options.map(entry => (
-                    <div
-                      key={entry.id}
-                      className={`border rounded-md p-3 flex items-center ${
-                        isSelected(option, entry)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200'
-                      } ${entry.isAvailable ? 'cursor-pointer' : 'opacity-50'}`}
-                      onClick={() => {
-                        if (entry.isAvailable) {
-                          handleOptionChange(option, entry);
-                        }
-                      }}
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium">{entry.name}</p>
-                        {entry.description && (
-                          <p className="text-gray-500 text-sm">{entry.description}</p>
-                        )}
-                      </div>
-                      
-                      {entry.price > 0 && (
-                        <span className="ml-3 text-gray-700">+{formatPrice(entry.price)}</span>
-                      )}
-                      
-                      {/* Different selection indicators based on option type */}
-                      <div className="ml-3">
-                        {option.type === 'Boolean' || option.type === 'SingleSelection' ? (
-                          <div
-                            className={`h-5 w-5 rounded-full border ${
-                              isSelected(option, entry)
-                                ? 'border-blue-500 bg-blue-500'
-                                : 'border-gray-300'
-                            } flex items-center justify-center`}
-                          >
-                            {isSelected(option, entry) && (
-                              <div className="h-2 w-2 rounded-full bg-white" />
-                            )}
-                          </div>
-                        ) : (
-                          <div
-                            className={`h-5 w-5 rounded border ${
-                              isSelected(option, entry)
-                                ? 'border-blue-500 bg-blue-500 text-white'
-                                : 'border-gray-300'
-                            } flex items-center justify-center`}
-                          >
-                            {isSelected(option, entry) && (
-                              <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-            
-            {/* Quantity selector */}
-            <div className="border-t border-gray-200 py-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Quantity</h3>
-                
-                <div className="flex items-center">
-                  <button
-                    onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                    disabled={quantity <= 1}
-                    className={`p-1 rounded-full border ${
-                      quantity <= 1 ? 'border-gray-200 text-gray-300' : 'border-gray-300 text-gray-600'
-                    }`}
-                  >
-                    <MinusIcon className="h-5 w-5" />
-                  </button>
-                  
-                  <span className="mx-4 font-medium text-lg">{quantity}</span>
-                  
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="p-1 rounded-full border border-gray-300 text-gray-600"
-                  >
-                    <PlusIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Footer with total and add to cart button */}
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold">Total</span>
-              <span className="text-xl font-bold">{formatPrice(totalPrice)}</span>
-            </div>
-            
+    <>
+      {/* Backdrop */ }
+      <div className="fixed inset-0 bg-black/50 z-50 transition-opacity" onClick={ onDismiss }/>
+
+      {/* Popup */ }
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6"
+             onClick={ e => e.stopPropagation() }>
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-lg font-semibold">{ item.name }</h3>
             <button
-              onClick={onDismiss}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              onClick={ onDismiss }
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              aria-label="Close popup"
             >
-              Add to Cart
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"/>
+              </svg>
             </button>
           </div>
-        </Dialog.Panel>
+
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{ item.description }</p>
+          <p className="font-medium mb-4">{ formatPrice(item.price) } each</p>
+
+          {/* Display options if available */ }
+          { item.options.length > 0 && (
+            <ItemOptions
+              item={ item }
+              selectedOptions={ selectedOptions }
+              handleOptionChange={ handleOptionChange }
+            />
+          ) }
+
+          <div className="flex justify-between items-center mb-6">
+            <span className="font-semibold">Total:</span>
+            <span className="font-bold text-lg">{ formatPrice(totalPrice * quantity) }</span>
+          </div>
+
+          {/* Observation input */ }
+          <div className="mb-4">
+            <label htmlFor="observation" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Observation
+            </label>
+            <textarea
+              id="observation"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 p-2"
+              style={ { height: '100px', resize: 'none' } } // Fixed height
+              value={ observation }
+              onChange={ (e) => setObservation(e.target.value) }
+              placeholder="Add any special instructions or notes here..."
+            />
+          </div>
+
+          { isEdit && quantity === 0 && (
+            <div className="mb-4 p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-md">
+              Setting quantity to 0 will remove this item from your cart.
+            </div>
+          ) }
+
+          {/* Display error message if present */ }
+          { error && (
+            <div className="mb-4 p-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md">
+              { error === 'different merchant' && 'You can only add items from the same merchant to your cart.' }
+              { error === 'unknown error' && 'An unknown error occurred. Please try again.' }
+            </div>
+          ) }
+
+          <div className="flex gap-2 items-center">
+            <div className="flex items-center flex-1">
+              <button
+                onClick={ handleDecrement }
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                aria-label="Decrease quantity"
+                disabled={ quantity <= (isEdit ? 0 : 1) }
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={ 2 }
+                    d="M20 12H4"
+                  />
+                </svg>
+              </button>
+              <span className="mx-4 text-lg font-semibold">{ quantity }</span>
+              <button
+                onClick={ handleIncrement }
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                aria-label="Increase quantity"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={ 2 }
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+            </div>
+            <button
+              onClick={ handleConfirm }
+              className={ `flex-1 py-2 px-4 ${ quantity === 0 && isEdit ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700' } text-white font-semibold rounded-md` }
+            >
+              { isEdit
+                ? (quantity === 0 ? 'Remove Item' : 'Update Quantity')
+                : 'Add to Cart' }
+            </button>
+          </div>
+        </div>
       </div>
-    </Dialog>
+    </>
   );
 };
 
