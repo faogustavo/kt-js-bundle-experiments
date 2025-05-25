@@ -11,7 +11,8 @@
     "build:kt": "cd ..; ./gradlew :shared:jsNodeProductionLibraryDistribution;",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test": "cypress run"
+    "test": "cypress run",
+    "analyze:sourcemaps": "source-map-explorer '.next/static/chunks/**/*.js' '.next/static/chunks/**/*.js.map'"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.74.4",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.4.0-canary.51",
     "@tailwindcss/postcss": "^4",
     "@testing-library/cypress": "^10.0.3",
     "@types/node": "^20",
@@ -30,6 +32,7 @@
     "cypress": "^14.4.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "source-map-explorer": "^2.5.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
