@@ -14,7 +14,7 @@ interface HomeListProps {
 
 export default function HomeList({ merchants }: HomeListProps) {
   return (
-    <div className="flex flex-col space-y-4 max-w-3xl mx-auto">
+    <div data-testid="merchant-list" className="flex flex-col space-y-4 max-w-3xl mx-auto">
       {merchants?.map((merchant) => (
         <Link
           key={merchant.id}

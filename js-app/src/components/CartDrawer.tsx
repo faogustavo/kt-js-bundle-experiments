@@ -68,9 +68,14 @@ const CartDrawer: React.FC = () => {
         <>
           <div className="fixed inset-0 bg-black/50 z-50 transition-opacity"/>
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div 
+              role="dialog"
+              aria-modal="true"
+              aria-label="Clear Cart Confirmation"
+              aria-describedby="clear-cart-description"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
               <h3 className="text-lg font-semibold mb-4">Clear Cart</h3>
-              <p className="mb-6">Are you sure you want to clear all items from your cart?</p>
+              <p id="clear-cart-description" className="mb-6">Are you sure you want to clear all items from your cart?</p>
               <div className="flex justify-end gap-2">
                 <button
                   onClick={ cancelClearCart }
@@ -100,6 +105,10 @@ const CartDrawer: React.FC = () => {
 
       {/* Drawer */ }
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping Cart"
+        aria-describedby="cart-description"
         className={ `fixed top-0 right-0 h-full w-full sm:w-96 bg-white dark:bg-gray-800 shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }` }
@@ -109,7 +118,7 @@ const CartDrawer: React.FC = () => {
           <div>
             <h2 className="text-xl font-semibold">Your Cart</h2>
             { items.length > 0 && merchantName && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <div id="cart-description" className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mt-1">
                 <span className="font-bold">{ merchantName }</span>
                 { merchantCategory && (
                   <>
@@ -155,7 +164,7 @@ const CartDrawer: React.FC = () => {
               <p className="text-gray-500 dark:text-gray-400">Your cart is empty</p>
             </div>
           ) : (
-            <ul className="space-y-4">
+            <ul className="space-y-4" aria-label="Cart items">
               { items.map((cartItem) => (
                 <li key={ cartItem.item.id } className="flex border-b dark:border-gray-700 pb-4">
                   <div className="flex-1">
