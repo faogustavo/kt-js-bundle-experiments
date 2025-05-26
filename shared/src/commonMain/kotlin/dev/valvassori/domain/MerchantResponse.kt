@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlin.js.JsExport
 
 @Serializable
-class MerchantResponse(
+data class MerchantResponse(
     val id: String,
     val name: String,
     val type: TypeResponse,
@@ -23,6 +23,48 @@ class MerchantResponse(
     val category: String,
     val menu: Array<MenuCategoryResponse>,
 ) {
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + minimumOrder
+        result = 31 * result + isOpen.hashCode()
+        result = 31 * result + workingHours.contentHashCode()
+        result = 31 * result + deliveryTime
+        result = 31 * result + deliveryFee
+        result = 31 * result + rating
+        result = 31 * result + ratingCount
+        result = 31 * result + imageUrl.hashCode()
+        result = 31 * result + address.hashCode()
+        result = 31 * result + phoneNumber.hashCode()
+        result = 31 * result + category.hashCode()
+        result = 31 * result + menu.contentHashCode()
+        return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MerchantResponse) return false
+
+        if (id != other.id) return false
+        if (name != other.name) return false
+        if (type != other.type) return false
+        if (minimumOrder != other.minimumOrder) return false
+        if (isOpen != other.isOpen) return false
+        if (!workingHours.contentEquals(other.workingHours)) return false
+        if (deliveryTime != other.deliveryTime) return false
+        if (deliveryFee != other.deliveryFee) return false
+        if (rating != other.rating) return false
+        if (ratingCount != other.ratingCount) return false
+        if (imageUrl != other.imageUrl) return false
+        if (address != other.address) return false
+        if (phoneNumber != other.phoneNumber) return false
+        if (category != other.category) return false
+        if (!menu.contentEquals(other.menu)) return false
+
+        return true
+    }
+
     @Serializable
     enum class TypeResponse {
         Supermarket,
